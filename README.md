@@ -58,7 +58,7 @@ Once you have the good-books index on Azure AI Search, you can deploy a static w
 
 Deploy the app from Visual Studio Code using the **Create Static Web App (Advanced)** wizard. In the wizard, you are prompted to set the location of your application code. This is the "language-of-choice"/api folder containing the Azure function, using for making calls to Azure AI Search.
 
-1. In Visual Studio Code, make sure you're at the repository root, and not the bulk-insert folder (for example, `azure-search-static-web-app`).
+1. In Visual Studio Code in Explorer, make sure you're at the repository root, and not the bulk-insert folder (for example, `azure-search-static-web-app`).
 
 1. Select **Azure** from the Activity Bar, then open **Resources** from the side bar. 
 
@@ -81,7 +81,7 @@ Deploy the app from Visual Studio Code using the **Create Static Web App (Advanc
     |Select a SKU | Select the free SKU for this tutorial.|
     |Select a region | We recommend `West US 2`. |
     |Choose build preset to configure default project structure. |Select **Custom**. |
-    |Select the location of your client application code | `client`<br><br>This is the path, from the root of the repository, to your static web app. |
+    |Select the location of your client application code | `client` (no leading forward slash) <br><br>This is the path, from the root of the repository, to your static web app. |
     |Select the location of your function code | `dotnet\api`, for example.<br><br>Azure functions are provided in three languages. You can choose any one of them. |
     |Enter the path of your build output... | `build`<br><br>This is the path, from your static web app, to your generated files.|
 
@@ -94,7 +94,7 @@ Deploy the app from Visual Studio Code using the **Create Static Web App (Advanc
    * Select **Open Actions in GitHub** from the Notifications. This opens a browser window pointed to your forked repo.
    * Select the **Actions** tab in your forked repository. You should see a list of all workflows on your fork.
 
-  It's expected that the workflow succeeds. However,  the Git workflow builds the YML file using a backward slash file delimiter by default, and this prevents it from locating the API folder. Inside theBuild and Deploy Job output, you'll find a warning similar to this: "`[WARNING] Api Directory Location: 'javascriptpi' could not be found. Azure Functions will not be created. Either no Api directory was specified, or the specified directory was not found. Azure Functions will not be created.`".
+   It's expected that the workflow succeeds. However, the Git workflow builds the YML file using a backward slash file delimiter, resulting in an invalid path for locating the API folder. Inside theBuild and Deploy Job output, you'll find a warning similar to this: "`[WARNING] Api Directory Location: 'javascriptpi' could not be found. Azure Functions will not be created. Either no Api directory was specified, or the specified directory was not found. Azure Functions will not be created.`".
 
 1. Edit the YML to change the backward slash to a forward slash. You can perform this step as soon as the YML file is created. A new workflow launches as soon as you push the updates.
 
