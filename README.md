@@ -1,13 +1,15 @@
 
 # Readme: Static Web App for Azure AI Search
 
-This code sample builds a web site on Azure to search through a catalog of books. Searchable content is indexed and queried on Azure AI Search. This sample includes two programs and an Azure Function.
+This code sample builds a web site on Azure to search through a catalog of books. Searchable content is indexed and queried on Azure AI Search, and a static web app provides the search experience.
+
+This sample includes two programs and an Azure function.
 
 | components | Description |
 |---------|-------------|
-| bulk-insert | Creates and loads the "goodbooks" index on Azure AI Search. It demonstrates index creation and batch mode indexing. Sample data is loaded from the [azure-search-sample-data](https://github.com/Azure-Samples/azure-search-sample-data/tree/main/good-books) repository. To run this program, you must have write permissions on Azure AI Search. <p>This program is available in three languages: <br>/dotnet/bulk-insert <br>/python/bulk-insert <br>/javascript/bulk-insert|
-| api | Provides the Azure function used by the client to send queries to the search index. <p>The function is available in three languages: <br>/dotnet/api (.NET) <br>/python/api <br>/javascript/api |
+| bulk-insert app | Creates and loads the "goodbooks" index on Azure AI Search. It demonstrates index creation and batch mode indexing. Sample data is loaded from the [azure-search-sample-data](https://github.com/Azure-Samples/azure-search-sample-data/tree/main/good-books) repository. To run this program, you must have write permissions on Azure AI Search. <p>This program is available in three languages: <br>/dotnet/bulk-insert <br>/python/bulk-insert <br>/javascript/bulk-insert|
 | client app | Provides the client code. The web front-end includes a search page with faceted navigation, a search bar for free form search and suggested queries, and tabbed page results. It's written in JavaScript, uses Node.js for the runtime, and uses React libraries for user interaction. |
+| api | Provides the Azure function used by the client to send queries to the search index. <p>The function is available in three languages: <br>/dotnet/api (.NET) <br>/python/api <br>/javascript/api |
 
 This README is an shortened version of the [full tutorial](https://aka.ms/search-website-tutorial) and provides just the steps for running the sample. For more information and screenshots, see the tutorial.
 
