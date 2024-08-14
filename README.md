@@ -58,7 +58,7 @@ Once you have the good-books index on Azure AI Search, you can deploy a static w
 
 Deploy the app from Visual Studio Code using the **Create Static Web App (Advanced)** wizard. In the wizard, you are prompted to set the location of your application code. This is the "language-of-choice"/api folder containing the Azure function, using for making calls to Azure AI Search.
 
-1. In Visual Studio Code, make sure you're at the repository root, and not the bulk-insert folder (for example, `azure-search-static-web-app`).
+1. In Visual Studio Code in Explorer, make sure you're at the repository root, and not the bulk-insert folder (for example, `azure-search-static-web-app`).
 
 1. Select **Azure** from the Activity Bar, then open **Resources** from the side bar. 
 
