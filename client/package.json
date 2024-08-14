@@ -7,7 +7,7 @@
   },
   "proxy": "http://127.0.0.1:7071",
   "dependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.24.7",
+    "@babel/plugin-proposal-private-property-in-object": "^7.16.7",
     "@emotion/styled": "11.10.6",
     "@mui/icons-material": "^5.11.16",
     "@mui/lab": "^5.0.0-alpha.125",
