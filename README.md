@@ -94,7 +94,7 @@ Deploy the app from Visual Studio Code using the **Create Static Web App (Advanc
    * Select **Open Actions in GitHub** from the Notifications. This opens a browser window pointed to your forked repo.
    * Select the **Actions** tab in your forked repository. You should see a list of all workflows on your fork.
 
-  It's expected that the workflow succeeds. However,  the Git workflow builds the YML file using a backward slash file delimiter by default, and this prevents it from locating the API folder. Inside theBuild and Deploy Job output, you'll find a warning similar to this: "`[WARNING] Api Directory Location: 'javascriptpi' could not be found. Azure Functions will not be created. Either no Api directory was specified, or the specified directory was not found. Azure Functions will not be created.`".
+   It's expected that the workflow succeeds. However, the Git workflow builds the YML file using a backward slash file delimiter, resulting in an invalid path for locating the API folder. Inside theBuild and Deploy Job output, you'll find a warning similar to this: "`[WARNING] Api Directory Location: 'javascriptpi' could not be found. Azure Functions will not be created. Either no Api directory was specified, or the specified directory was not found. Azure Functions will not be created.`".
 
 1. Edit the YML to change the backward slash to a forward slash. You can perform this step as soon as the YML file is created. A new workflow launches as soon as you push the updates.
 
