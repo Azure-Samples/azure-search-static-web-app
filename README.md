@@ -81,7 +81,7 @@ Deploy the app from Visual Studio Code using the **Create Static Web App (Advanc
     |Select a SKU | Select the free SKU for this tutorial.|
     |Select a region | We recommend `West US 2`. |
     |Choose build preset to configure default project structure. |Select **Custom**. |
-    |Select the location of your client application code | `client`<br><br>This is the path, from the root of the repository, to your static web app. |
+    |Select the location of your client application code | `client` (no leading forward slash) <br><br>This is the path, from the root of the repository, to your static web app. |
     |Select the location of your function code | `dotnet\api`, for example.<br><br>Azure functions are provided in three languages. You can choose any one of them. |
     |Enter the path of your build output... | `build`<br><br>This is the path, from your static web app, to your generated files.|
 
