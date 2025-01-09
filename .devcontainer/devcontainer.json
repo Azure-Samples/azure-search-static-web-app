@@ -13,7 +13,8 @@
 			"extensions": [
 				"formulahendry.dotnet",
 				"ms-dotnettools.csdevkit",
-				"ms-azuretools.vscode-azurefunctions"
+				"ms-azuretools.vscode-azurefunctions",
+				"humao.rest-client"
 			]
 		}
 	}

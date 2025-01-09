@@ -54,7 +54,6 @@ namespace WebSearch.Function
             };
 
             var response = req.CreateResponse(HttpStatusCode.Found);
-            response.Headers.Add("Content-Type", "application/json; charset=utf-8");
 
             // Serialize data
             var serializer = new JsonObjectSerializer(

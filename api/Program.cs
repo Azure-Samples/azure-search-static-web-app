@@ -1,10 +1,13 @@
+using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Azure.Functions.Worker.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
 
-var host = new HostBuilder()
-    .ConfigureFunctionsWorkerDefaults()
-    .Build();
+var builder = FunctionsApplication.CreateBuilder(args);
 
-host.Run();
+builder.ConfigureFunctionsWebApplication();
+
+// Application Insights isn't enabled by default. See https://aka.ms/AAt8mw4.
+// builder.Services
+//     .AddApplicationInsightsTelemetryWorkerService()
+//     .ConfigureFunctionsApplicationInsights();
+
+builder.Build().Run();

@@ -1,0 +1,2 @@
+GET http://localhost:7071/api/lookup?id=9734 HTTP/1.1
+content-type: application/json
