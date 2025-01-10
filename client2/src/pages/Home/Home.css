@@ -1,0 +1,15 @@
+.home-search {
+    margin: 5em auto;
+    display: block;
+}
+
+.logo {
+    height: 12em;
+    width: auto;
+    display:block;
+    margin: auto auto 0;
+}
+
+.poweredby {
+    text-align: center;
+}

@@ -1,0 +1,12 @@
+/* Application styles */
+.app {
+  background-color: #fff;
+  padding: 100px 0;
+}
+
+.main--home {
+  min-height: 40em;
+}
+.main--details {
+  min-height: 40em;
+}
