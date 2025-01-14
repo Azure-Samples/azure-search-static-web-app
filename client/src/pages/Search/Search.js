@@ -82,6 +82,14 @@ export default function Search() {
     )
   }
 
+  const updateFilterHandler = (newFilters) => {
+
+    setSkip(0); // filters should be applied across entire result set, not just within the current page
+    setCurrentPage(1);
+
+    setFilters(newFilters);
+  };
+
   return (
     <main className="main main--search container-fluid">
       
@@ -90,7 +98,7 @@ export default function Search() {
           <div className="search-bar">
             <SearchBar postSearchHandler={postSearchHandler} q={q}></SearchBar>
           </div>
-          <Facets facets={facets} filters={filters} setFilters={setFilters}></Facets>
+          <Facets facets={facets} filters={filters} setFilters={updateFilterHandler}></Facets>
         </div>
         {body}
       </div>
