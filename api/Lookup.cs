@@ -30,6 +30,11 @@ namespace WebSearch.Function
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req, 
             FunctionContext executionContext)
         {
+            if (string.IsNullOrEmpty(searchApiKey) || string.IsNullOrEmpty(searchServiceName) || string.IsNullOrEmpty(searchIndexName))
+            {
+                _logger.LogError("One or more configuration values are not set.");
+                return req.CreateResponse(HttpStatusCode.InternalServerError);
+            }
 
             // Get Document Id
             var query = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
