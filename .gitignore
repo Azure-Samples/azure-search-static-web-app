@@ -486,3 +486,8 @@ ENV/
 
 # Azure Functions
 local.settings.json
+
+client/build/
+client/node_modules/
+client/.env
+
