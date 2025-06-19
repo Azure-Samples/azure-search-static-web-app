@@ -1,5 +1,9 @@
-const baseURL = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'http://localhost:7071';
+// Use localhost in development, empty string in production for relative URLs
+const baseURL = import.meta.env.DEV 
+    ? (import.meta.env.VITE_REACT_APP_BACKEND_URL || 'http://localhost:7071')
+    : (import.meta.env.VITE_REACT_APP_BACKEND_URL || '');
 console.log(`baseURL = ${baseURL}`);
+console.log(`Environment: ${import.meta.env.MODE}`);
 
 function buildQueryString(params) {
     return Object.keys(params)
@@ -9,7 +13,8 @@ function buildQueryString(params) {
 
 async function fetchInstance(url, { query = {}, body = null, headers = {}, method = 'GET' } = {}) {
     const queryString = buildQueryString(query);
-    const fullUrl = `${baseURL}${url}${queryString ? `?${queryString}` : ''}`;
+    // Handle empty baseURL for production (relative URLs)
+    const fullUrl = baseURL ? `${baseURL}${url}${queryString ? `?${queryString}` : ''}` : `${url}${queryString ? `?${queryString}` : ''}`;
 
     console.log(`fetching ${fullUrl} with method ${method}`);
     console.log(`headers:`, headers);

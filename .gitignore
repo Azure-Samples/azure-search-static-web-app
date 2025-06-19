@@ -476,7 +476,7 @@ _site
 .yarnrc.yml
 
 # Python Environments
-.env
+.env*
 .venv
 .myenv
 env/
