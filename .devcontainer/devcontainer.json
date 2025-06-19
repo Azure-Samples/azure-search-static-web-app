@@ -14,7 +14,8 @@
 				"formulahendry.dotnet",
 				"ms-dotnettools.csdevkit",
 				"ms-azuretools.vscode-azurefunctions",
-				"humao.rest-client"
+				"humao.rest-client",
+				"ms-azuretools.vscode-azurestaticwebapps"
 			]
 		}
 	}
