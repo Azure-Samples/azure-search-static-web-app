@@ -4,20 +4,19 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
-    "build": "vite build",
+    "dev": "vite --host --port 3000",
+    "build": "tsc && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "clean:vite": "rm -rf node_modules/.vite && rm -rf build",
+    "type-check": "tsc --noEmit",
+    "dev:build": "tsc && vite build && vite --host --port 3000"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^6.4.6",
-    "@mui/material": "^6.4.6",
-    "axios": "^1.8.1",
-    "bootstrap": "^5.3.3",
-    "jquery": "^3.7.1",
-    "popper.js": "^1.16.1",
+    "@mui/material": "^6.5.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.2.0"
@@ -31,6 +30,7 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "typescript": "^5.9.2",
     "vite": "^6.2.0"
   }
 }

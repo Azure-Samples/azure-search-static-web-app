@@ -1,0 +1,39 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Debug React App (Chrome)",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/client",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "webpack:///src/*": "${webRoot}/src/*"
+            },
+            "preLaunchTask": "start-vite-dev-server"
+        },
+        {
+            "type": "msedge",
+            "request": "launch",
+            "name": "Debug React App (Edge)",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/client",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "webpack:///src/*": "${webRoot}/src/*"
+            },
+            "preLaunchTask": "start-vite-dev-server"
+        },
+        {
+            "type": "node-terminal",
+            "name": "Run Development Server",
+            "request": "launch",
+            "command": "npm run dev",
+            "cwd": "${workspaceFolder}/client"
+        }
+    ]
+}

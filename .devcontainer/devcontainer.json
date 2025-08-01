@@ -5,9 +5,13 @@
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "mcr.microsoft.com/devcontainers/dotnet:1-9.0-bookworm",
 	"features": {
-		"ghcr.io/devcontainers/features/node:1": {},
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "lts",
+			"nodeGypDependencies": true
+		},
 		"ghcr.io/jlaundry/devcontainer-features/azure-functions-core-tools:1": {},
-		"ghcr.io/devcontainers/features/azure-cli:1": {}
+		"ghcr.io/devcontainers/features/azure-cli:1": {},
+		"ghcr.io/azure/azure-dev/azd:0": {}
 	},
 	"customizations": {
 		"vscode": {
@@ -16,16 +20,22 @@
 				"ms-dotnettools.csdevkit",
 				"ms-azuretools.vscode-azurefunctions",
 				"humao.rest-client",
-				"ms-azuretools.vscode-azurestaticwebapps"
+				"ms-azuretools.vscode-azurestaticwebapps",
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"ms-vscode.vscode-typescript-next",
+				"VisualStudioExptTeam.vscodeintellicode",
+				"VisualStudioExptTeam.intellicode-api-usage-examples",
+				"ms-azuretools.vscode-bicep"
 			]
 		}
-	}
-
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
+	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [5000, 5001],
+	"forwardPorts": [7071, 3000],
+	
+	// Install dependencies after container creation
+	"postCreateCommand": "cd api && dotnet restore && cd ../client && npm install",
 	// "portsAttributes": {
 	//		"5001": {
 	//			"protocol": "https"
@@ -39,5 +49,5 @@
 	// "customizations": {},
 
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+	"remoteUser": "root"
 }
