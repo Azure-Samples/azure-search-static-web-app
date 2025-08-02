@@ -165,103 +165,60 @@ module serverContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
   }
 }
 
-module containerAppRoleAssignment 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = {
-  name: 'container-app-role-assignment'
+// Apply CORS settings directly to the server container app after the client is created
+module serverContainerAppWithClientCors 'br/public:avm/res/app/container-app:0.9.0' = {
+  name: 'serverWithClientCors'
   params: {
-    principalId: managedIdentity.outputs.principalId
-    resourceId: resourceGroup().id
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c') // Contributor
-  }
-}
-
-module storageForDeploymentScript 'br/public:avm/res/storage/storage-account:0.9.1' = {
-  name: 'storageAccountDeployment'
-  params: {
-    // Required parameters
-    name: 'stor${resourceToken}'
-    // Non-required parameters
-    allowBlobPublicAccess: false
-    networkAcls: {
-      bypass: 'AzureServices'
-      defaultAction: 'Deny'
-    }
-    roleAssignments: [
-      {
-        principalId: managedIdentity.outputs.principalId 
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: 'Owner' // Owner role for full management plane control
-      }
-      {
-        principalId: managedIdentity.outputs.principalId 
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: 'b24988ac-6180-42a0-ab88-20f7382dd24c' // Contributor role (management plane)
-      }
-      {
-        principalId: managedIdentity.outputs.principalId 
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b' // Storage Blob Data Owner role (data plane)
-      }
-      {
-        principalId: managedIdentity.outputs.principalId 
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe' // Storage Blob Data Contributor role (data plane)
-      }
-    ]
-  }
-}
-
-module updateServerCorsPolicy 'br/public:avm/res/resources/deployment-script:0.5.1' = {
-  name: 'update-server-cors-policy'
-  params: {
-    // Required parameters
-    kind: 'AzureCLI'
-    name: 'script${resourceToken}'
-    // Non-required parameters
-    azCliVersion: '2.52.0'
-    environmentVariables: [
-      {
-        name: 'SERVER_APP_NAME'
-        value: serverContainerApp.name
-      }
-      {
-        name: 'RESOURCE_GROUP'
-        value: resourceGroup().name
-      }
-      {
-        name: 'CLIENT_FQDN'
-        value: clientContainerApp.outputs.fqdn
-      }
-    ]
+    name: 'server-container-${resourceToken}'
+    environmentResourceId: containerAppsEnvironment.outputs.resourceId
     location: location
+    tags: union(tags, { 'azd-service-name': 'server' })
+    ingressTargetPort: 80
+    ingressExternal: true
+    ingressTransport: 'auto'
+    stickySessionsAffinity: 'sticky'
+    scaleMaxReplicas: 1
+    scaleMinReplicas: 1
+    // Update CORS settings with client FQDN directly
+    corsPolicy: {
+      allowCredentials: true
+      allowedOrigins: [
+        'https://${clientContainerApp.outputs.fqdn}'
+      ]
+      allowedMethods: [
+        'GET'
+        'POST'
+        'PUT'
+        'DELETE'
+        'OPTIONS'
+        'PATCH'
+      ]
+      allowedHeaders: [
+        '*'
+      ]
+      exposeHeaders: [
+        '*'
+      ]
+      maxAge: 600
+    }
     managedIdentities: {
+      systemAssigned: false
       userAssignedResourceIds: [
         managedIdentity.outputs.resourceId
       ]
     }
-    retentionInterval: 'P1D'
-    scriptContent: '''
-      #!/bin/bash
-      set -e
-      
-      # Get the current container app configuration
-      az containerapp show --name $SERVER_APP_NAME --resource-group $RESOURCE_GROUP > app.json
-      
-      # Update the CORS policy to allow only the client FQDN
-      # This is a simplified example - in production you'd want to use jq for proper JSON manipulation
-      az containerapp update --name $SERVER_APP_NAME --resource-group $RESOURCE_GROUP \
-        --cors-allow-credentials true \
-        --cors-allowed-origins "https://$CLIENT_FQDN" \
-        --cors-allowed-methods "GET POST PUT DELETE OPTIONS PATCH" \
-        --cors-allowed-headers "*" \
-        --cors-expose-headers "*" \
-        --cors-max-age 600
-        
-      echo "Updated CORS policy for $SERVER_APP_NAME to only allow https://$CLIENT_FQDN"
-    '''
-    storageAccountResourceId: storageForDeploymentScript.outputs.resourceId
+    containers: [
+      {
+        image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+        name: 'web-front-end'
+        resources: {
+          cpu: '0.25'
+          memory: '.5Gi'
+        }
+      }
+    ]
   }
-  
 }
 
-output AZURE_SERVER_URL string = serverContainerApp.outputs.fqdn
+output AZURE_SERVER_URL string = serverContainerAppWithClientCors.outputs.fqdn
 output AZURE_CLIENT_URL string = clientContainerApp.outputs.fqdn
