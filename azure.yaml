@@ -1,0 +1,10 @@
+name: container-full-stack
+services:
+  server:
+    project: ./api
+    host: containerapp
+    language: docker
+  client:
+    project: ./client
+    host: containerapp
+    language: docker
