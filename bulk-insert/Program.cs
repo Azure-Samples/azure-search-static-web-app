@@ -1,5 +1,5 @@
-﻿
-using Azure;
+﻿using Azure;
+using Azure.Identity;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Indexes.Models;
@@ -7,20 +7,22 @@ using AzureSearch.BulkInsert;
 using ServiceStack;
 
 const string BOOKS_URL = "https://raw.githubusercontent.com/Azure-Samples/azure-search-sample-data/main/good-books/books.csv";
-const string SEARCH_ENDPOINT = "https://YOUR-SEARCH-RESOURCE-NAME.search.windows.net";
-const string SEARCH_KEY = "YOUR-SEARCH-ADMIN-KEY";
-const string SEARCH_INDEX_NAME = "good-books";
+const string SEARCH_SERVICE_NAME = Environment.GetEnvironmentVariable("SEARCH_SERVICE_NAME") ?? throw new InvalidOperationException("SEARCH_SERVICE_NAME environment variable is not set.");
+const string SEARCH_INDEX_NAME = Environment.GetEnvironmentVariable("SEARCH_INDEX_NAME") ?? "good-books";
+const string SEARCH_ENDPOINT = $"https://{SEARCH_SERVICE_NAME}.search.windows.net";
+
 
 Uri searchEndpointUri = new(SEARCH_ENDPOINT);
 
+// Use DefaultAzureCredential for authentication
 SearchClient client = new(
     searchEndpointUri,
     SEARCH_INDEX_NAME,
-    new AzureKeyCredential(SEARCH_KEY));
+    new AzureDeveloperCliCredential());
 
 SearchIndexClient clientIndex = new(
     searchEndpointUri,
-    new AzureKeyCredential(SEARCH_KEY));
+    new AzureDeveloperCliCredential());
 
 await CreateIndexAsync(clientIndex);
 await BulkInsertAsync(client);

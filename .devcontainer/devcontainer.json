@@ -21,7 +21,8 @@
 				"ms-azuretools.vscode-azurestaticwebapps",
 				"ms-azuretools.vscode-bicep",
 				"GitHub.copilot-chat",
-				"ms-azuretools.azure-dev"
+				"ms-azuretools.azure-dev",
+				"ms-azuretools.vscode-docker"
 			]
 		}
 	},
