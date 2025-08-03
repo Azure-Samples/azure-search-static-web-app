@@ -77,64 +77,64 @@ module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.11.
   }
 }
 
-module clientContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
-  name: 'client'
-  params: {
-    name: 'client-container-${resourceToken}'
-    environmentResourceId: containerAppsEnvironment.outputs.resourceId
-    location: location
-    tags: union(tags, { 'azd-service-name': 'client' })
-    ingressTargetPort: 3000
-    ingressExternal: true
-    ingressTransport: 'auto'
-    stickySessionsAffinity: 'sticky'
-    scaleMaxReplicas: 1
-    scaleMinReplicas: 1
-    corsPolicy: {
-      allowCredentials: true
-      allowedOrigins: [
-        '*'
-      ]
-    }
-    managedIdentities: {
-      systemAssigned: false
-      userAssignedResourceIds: [
-        managedIdentity.outputs.resourceId
-      ]
-    }
-    registries: [
-      {
-        server: containerRegistry.outputs.loginServer
-        identity: managedIdentity.outputs.resourceId
-      }
-    ]
-    secrets: {
-      secureList: [
-        {
-          name: 'azure-backend-url'
-          value: serverContainerApp.outputs.fqdn
-        }
-      ]
-    }
-    containers: [
-      {
-        // Use parameter to control which image to use
-        image: '${containerRegistry.outputs.loginServer}/client:latest' 
-        name: 'web-front-end'
-        resources: {
-          cpu: '0.25'
-          memory: '.5Gi'
-        }
-        env: [
-          {
-            name: 'AZURE_BACKEND_URL'
-            secretRef: 'azure-backend-url'
-          }
-        ]
-      }
-    ]
-  }
-}
+// module clientContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
+//   name: 'client'
+//   params: {
+//     name: 'client-container-${resourceToken}'
+//     environmentResourceId: containerAppsEnvironment.outputs.resourceId
+//     location: location
+//     tags: union(tags, { 'azd-service-name': 'client' })
+//     ingressTargetPort: 3000
+//     ingressExternal: true
+//     ingressTransport: 'auto'
+//     stickySessionsAffinity: 'sticky'
+//     scaleMaxReplicas: 1
+//     scaleMinReplicas: 1
+//     corsPolicy: {
+//       allowCredentials: true
+//       allowedOrigins: [
+//         '*'
+//       ]
+//     }
+//     managedIdentities: {
+//       systemAssigned: false
+//       userAssignedResourceIds: [
+//         managedIdentity.outputs.resourceId
+//       ]
+//     }
+//     registries: [
+//       {
+//         server: containerRegistry.outputs.loginServer
+//         identity: managedIdentity.outputs.resourceId
+//       }
+//     ]
+//     secrets: {
+//       secureList: [
+//         {
+//           name: 'azure-backend-url'
+//           value: serverContainerApp.outputs.fqdn
+//         }
+//       ]
+//     }
+//     containers: [
+//       {
+//         // Use parameter to control which image to use
+//         image: '${containerRegistry.outputs.loginServer}/client:latest' 
+//         name: 'web-front-end'
+//         resources: {
+//           cpu: '0.25'
+//           memory: '.5Gi'
+//         }
+//         env: [
+//           {
+//             name: 'AZURE_BACKEND_URL'
+//             secretRef: 'azure-backend-url'
+//           }
+//         ]
+//       }
+//     ]
+//   }
+// }
 
 module serverContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
   name: 'server'
@@ -181,67 +181,67 @@ module serverContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
   }
 }
 
-// Apply CORS settings directly to the server container app after the client is created
-module serverContainerAppWithClientCors 'br/public:avm/res/app/container-app:0.9.0' = {
-  name: 'serverWithClientCors'
-  params: {
-    name: 'server-container-${resourceToken}'
-    environmentResourceId: containerAppsEnvironment.outputs.resourceId
-    location: location
-    tags: union(tags, { 'azd-service-name': 'server' })
-    ingressTargetPort: 80
-    ingressExternal: true
-    ingressTransport: 'auto'
-    stickySessionsAffinity: 'sticky'
-    scaleMaxReplicas: 1
-    scaleMinReplicas: 1
-    // Update CORS settings with client FQDN directly
-    corsPolicy: {
-      allowCredentials: true
-      allowedOrigins: [
-        'https://${clientContainerApp.outputs.fqdn}'
-      ]
-      allowedMethods: [
-        'GET'
-        'POST'
-        'PUT'
-        'DELETE'
-        'OPTIONS'
-        'PATCH'
-      ]
-      allowedHeaders: [
-        '*'
-      ]
-      exposeHeaders: [
-        '*'
-      ]
-      maxAge: 600
-    }
-    managedIdentities: {
-      systemAssigned: false
-      userAssignedResourceIds: [
-        managedIdentity.outputs.resourceId
-      ]
-    }
-    registries: [
-      {
-        server: containerRegistry.outputs.loginServer
-        identity: managedIdentity.outputs.resourceId
-      }
-    ]
-    containers: [
-      {
-        // Use parameter to control which image to use
-        image: useCustomContainerImages ? '${containerRegistry.outputs.loginServer}/server:latest' : 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
-        name: 'web-front-end'
-        resources: {
-          cpu: '0.25'
-          memory: '.5Gi'
-        }
-      }
-    ]
-  }
-}
+// // Apply CORS settings directly to the server container app after the client is created
+// module serverContainerAppWithClientCors 'br/public:avm/res/app/container-app:0.9.0' = {
+//   name: 'serverWithClientCors'
+//   params: {
+//     name: 'server-container-${resourceToken}'
+//     environmentResourceId: containerAppsEnvironment.outputs.resourceId
+//     location: location
+//     tags: union(tags, { 'azd-service-name': 'server' })
+//     ingressTargetPort: 80
+//     ingressExternal: true
+//     ingressTransport: 'auto'
+//     stickySessionsAffinity: 'sticky'
+//     scaleMaxReplicas: 1
+//     scaleMinReplicas: 1
+//     // Update CORS settings with client FQDN directly
+//     corsPolicy: {
+//       allowCredentials: true
+//       allowedOrigins: [
+//         'https://${clientContainerApp.outputs.fqdn}'
+//       ]
+//       allowedMethods: [
+//         'GET'
+//         'POST'
+//         'PUT'
+//         'DELETE'
+//         'OPTIONS'
+//         'PATCH'
+//       ]
+//       allowedHeaders: [
+//         '*'
+//       ]
+//       exposeHeaders: [
+//         '*'
+//       ]
+//       maxAge: 600
+//     }
+//     managedIdentities: {
+//       systemAssigned: false
+//       userAssignedResourceIds: [
+//         managedIdentity.outputs.resourceId
+//       ]
+//     }
+//     registries: [
+//       {
+//         server: containerRegistry.outputs.loginServer
+//         identity: managedIdentity.outputs.resourceId
+//       }
+//     ]
+//     containers: [
+//       {
+//         // Use parameter to control which image to use
+//         image: useCustomContainerImages ? '${containerRegistry.outputs.loginServer}/server:latest' : 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+//         name: 'web-front-end'
+//         resources: {
+//           cpu: '0.25'
+//           memory: '.5Gi'
+//         }
+//       }
+//     ]
+//   }
+// }
 
-output AZURE_SERVER_URL string = serverContainerAppWithClientCors.outputs.fqdn
-output AZURE_CLIENT_URL string = clientContainerApp.outputs.fqdn
+output AZURE_SERVER_URL string = serverContainerApp.outputs.fqdn
+//output AZURE_CLIENT_URL string = clientContainerApp.outputs.fqdn
