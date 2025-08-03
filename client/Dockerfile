@@ -8,6 +8,7 @@ WORKDIR /usr/src/app
 COPY . .
 
 # Expose the port the app runs on
+ENV PORT=3000
 EXPOSE 3000
 
 # Use a simple HTTP server to serve the static files

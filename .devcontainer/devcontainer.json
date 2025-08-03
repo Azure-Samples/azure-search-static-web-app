@@ -20,7 +20,8 @@
 				"humao.rest-client",
 				"ms-azuretools.vscode-azurestaticwebapps",
 				"ms-azuretools.vscode-bicep",
-				"GitHub.copilot-chat"
+				"GitHub.copilot-chat",
+				"ms-azuretools.azure-dev"
 			]
 		}
 	},

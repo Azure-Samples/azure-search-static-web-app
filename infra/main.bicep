@@ -1,4 +1,4 @@
-metadata description = 'Provisions resources for a web application that uses Azure SDK for Rust to connect to Azure Cosmos DB for NoSQL.'
+metadata description = 'Provisions resources for a web application with containerized services using Azure Container Apps.'
 
 targetScope = 'resourceGroup'
 
@@ -14,7 +14,12 @@ param location string
 @description('Id of the principal to assign database and application roles.')
 param deploymentUserPrincipalId string = ''
 
+@description('Flag to determine if custom container images should be used. If false, uses hello world containers.')
+param useCustomContainerImages bool = false
+
+
 var resourceToken = toLower(uniqueString(resourceGroup().id, environmentName, location))
+
 var tags = {
   'azd-env-name': environmentName
 }
@@ -28,32 +33,29 @@ module managedIdentity 'br/public:avm/res/managed-identity/user-assigned-identit
   }
 }
 
-module containerRegistry 'br/public:avm/res/container-registry/registry:0.5.1' = {
+module containerRegistry 'br/public:avm/res/container-registry/registry:0.9.1' = {
   name: 'container-registry'
   params: {
-    name: 'containerreg${resourceToken}'
+    name: 'reg${resourceToken}'
     location: location
     tags: tags
     acrAdminUserEnabled: false
-    anonymousPullEnabled: true
+    anonymousPullEnabled: false
     publicNetworkAccess: 'Enabled'
     acrSku: 'Standard'
+    roleAssignments: [
+      {
+        principalId: managedIdentity.outputs.principalId
+        roleDefinitionIdOrName: '7f951dda-4ed3-4680-a7ca-43fe172d538d' // AcrPull
+      }
+      {
+        principalId: deploymentUserPrincipalId
+        roleDefinitionIdOrName: '8311e382-0749-4cb8-b61a-304f252e45ec' // AcrPush
+      }
+    ]
   }
 }
 
-var containerRegistryRole = subscriptionResourceId(
-  'Microsoft.Authorization/roleDefinitions',
-  '8311e382-0749-4cb8-b61a-304f252e45ec'
-) // AcrPush built-in role
-
-module registryUserAssignment 'br/public:avm/ptn/authorization/resource-role-assignment:0.1.1' = if (!empty(deploymentUserPrincipalId)) {
-  name: 'container-registry-role-assignment-push-user'
-  params: {
-    principalId: deploymentUserPrincipalId
-    resourceId: containerRegistry.outputs.resourceId
-    roleDefinitionId: containerRegistryRole
-  }
-}
 
 module logAnalyticsWorkspace 'br/public:avm/res/operational-insights/workspace:0.7.0' = {
   name: 'log-analytics-workspace'
@@ -64,14 +66,14 @@ module logAnalyticsWorkspace 'br/public:avm/res/operational-insights/workspace:0
   }
 }
 
-module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.8.0' = {
+module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.11.0' = {
   name: 'container-apps-env'
   params: {
     name: 'container-env-${resourceToken}'
     location: location
     tags: tags
-    logAnalyticsWorkspaceResourceId: logAnalyticsWorkspace.outputs.resourceId
     zoneRedundant: false
+    publicNetworkAccess: 'Enabled'
   }
 }
 
@@ -100,6 +102,12 @@ module clientContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
         managedIdentity.outputs.resourceId
       ]
     }
+    registries: [
+      {
+        server: containerRegistry.outputs.loginServer
+        identity: managedIdentity.outputs.resourceId
+      }
+    ]
     secrets: {
       secureList: [
         {
@@ -110,7 +118,8 @@ module clientContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
     }
     containers: [
       {
-        image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+        // Use parameter to control which image to use
+        image: '${containerRegistry.outputs.loginServer}/client:latest' 
         name: 'web-front-end'
         resources: {
           cpu: '0.25'
@@ -152,9 +161,16 @@ module serverContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
         managedIdentity.outputs.resourceId
       ]
     }
+    registries: [
+      {
+        server: containerRegistry.outputs.loginServer
+        identity: managedIdentity.outputs.resourceId
+      }
+    ]
     containers: [
       {
-        image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+        // Use parameter to control which image to use
+        image: '${containerRegistry.outputs.loginServer}/server:latest'
         name: 'web-front-end'
         resources: {
           cpu: '0.25'
@@ -207,9 +223,16 @@ module serverContainerAppWithClientCors 'br/public:avm/res/app/container-app:0.9
         managedIdentity.outputs.resourceId
       ]
     }
+    registries: [
+      {
+        server: containerRegistry.outputs.loginServer
+        identity: managedIdentity.outputs.resourceId
+      }
+    ]
     containers: [
       {
-        image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+        // Use parameter to control which image to use
+        image: useCustomContainerImages ? '${containerRegistry.outputs.loginServer}/server:latest' : 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
         name: 'web-front-end'
         resources: {
           cpu: '0.25'

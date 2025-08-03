@@ -1,4 +1,8 @@
 name: container-full-stack
+metadata:
+  template: container-full-stack@0.0.1
+infra:
+  provider: bicep
 services:
   server:
     project: ./api
@@ -8,3 +12,12 @@ services:
     project: ./client
     host: containerapp
     language: docker
+
+# Registry configuration
+# Azure Dev CLI will use this configuration to push container images
+# to Azure Container Registry during deployment
+registry:
+  # The registry will be created during infrastructure deployment
+  # The server URL will be determined from the deployed container registry
+  # We're using the registry created in the Bicep template
+  useFromTemplate: true
