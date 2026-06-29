@@ -67,6 +67,7 @@ export default function SearchBar({ postSearchHandler, query, width }) {
               placeholder="What are you looking for?"
               onBlur={() => setSuggestions([])}
               onClick={() => setSuggestions([])}
+              onKeyDown={onEnterButton}
             />
           )}
         />
