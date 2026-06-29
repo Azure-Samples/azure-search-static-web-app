@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Search.Documents" Version="11.4.0" />
+    <PackageReference Include="Azure.Search.Documents" Version="11.7.0" />
     <PackageReference Include="ServiceStack.Text" Version="6.4.0" />
   </ItemGroup>
 
