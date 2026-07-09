@@ -21,6 +21,7 @@ hooks:
         --resource-group "$AZURE_RESOURCE_GROUP" \
         --query primaryKey -o tsv)
       export SEARCH_API_KEY
+      export SEARCH_INDEX_NAME=good-books
       cd ./bulk-insert
       dotnet build
       dotnet run

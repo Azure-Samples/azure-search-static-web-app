@@ -151,6 +151,13 @@ var serverSearchApiKeyEnv = useKeylessAuth ? [] : [
   }
 ]
 
+var serverKeylessEnv = useKeylessAuth ? [
+  {
+    name: 'AZURE_CLIENT_ID'
+    value: managedIdentity.outputs.clientId
+  }
+] : []
+
 module serverContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
   name: 'server'
   params: {
@@ -201,12 +208,9 @@ module serverContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
               name: 'SearchIndexName'
               value: 'good-books'
             }
-            {
-              name: 'AZURE_CLIENT_ID'
-              value: managedIdentity.outputs.clientId
-            }
           ],
-          serverSearchApiKeyEnv
+          serverSearchApiKeyEnv,
+          serverKeylessEnv
         )
       }
     ]
