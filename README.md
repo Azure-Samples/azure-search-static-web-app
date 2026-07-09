@@ -34,8 +34,6 @@ The `postprovision` hook automatically runs `bulk-insert` to create and populate
 
 To redeploy after code changes: `azd deploy`
 
-
-
 ## Prerequisites
 
 * [Node.js](https://nodejs.org/en/download/package-manager)

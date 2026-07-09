@@ -14,9 +14,6 @@ param location string
 @description('Id of the principal to assign database and application roles.')
 param deploymentUserPrincipalId string = ''
 
-@description('Flag to determine if custom container images should be used. If false, uses hello world containers.')
-param useCustomContainerImages bool = false
-
 var resourceToken = toLower(uniqueString(resourceGroup().id, environmentName, location))
 
 var tags = {
@@ -36,7 +33,7 @@ var registryRolesForUser = empty(deploymentUserPrincipalId) ? [] : [
   {
     principalId: deploymentUserPrincipalId
     principalType: 'User'
-    roleDefinitionIdOrName: '8311e382-0749-4cb8-b61a-304f252e45ec' // AcrPush
+    roleDefinitionIdOrName: 'AcrPush'
   }
 ]
 
@@ -55,7 +52,7 @@ module containerRegistry 'br/public:avm/res/container-registry/registry:0.9.1' =
         {
           principalId: managedIdentity.outputs.principalId
           principalType: 'ServicePrincipal'
-          roleDefinitionIdOrName: '7f951dda-4ed3-4680-a7ca-43fe172d538d' // AcrPull
+          roleDefinitionIdOrName: 'AcrPull'
         }
       ],
       registryRolesForUser
@@ -116,10 +113,7 @@ module clientContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
     ]
     containers: [
       {
-        // Use parameter to control which image to use
-        image: useCustomContainerImages
-          ? '${containerRegistry.outputs.loginServer}/client:latest'
-          : 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+        image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest' // Placeholder; azd deploy builds and pushes the real image and updates this container app
         name: 'client'
         resources: {
           cpu: '0.25'
@@ -169,10 +163,7 @@ module serverContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
     ]
     containers: [
       {
-        // Use parameter to control which image to use
-        image: useCustomContainerImages
-          ? '${containerRegistry.outputs.loginServer}/server:latest'
-          : 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+        image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest' // Placeholder; azd deploy builds and pushes the real image and updates this container app
         name: 'server'
         resources: {
           cpu: '0.25'
