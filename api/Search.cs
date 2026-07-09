@@ -1,5 +1,6 @@
 using Azure;
 using Azure.Core.Serialization;
+using Azure.Identity;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using Microsoft.Azure.Functions.Worker;
@@ -37,11 +38,9 @@ namespace WebSearch.Function
             // Azure AI Search 
             Uri serviceEndpoint = new($"https://{searchServiceName}.search.windows.net/");
 
-            SearchClient searchClient = new(
-                serviceEndpoint,
-                searchIndexName,
-                new AzureKeyCredential(searchApiKey)
-            );
+            SearchClient searchClient = string.IsNullOrEmpty(searchApiKey)
+                ? new SearchClient(serviceEndpoint, searchIndexName, new DefaultAzureCredential())
+                : new SearchClient(serviceEndpoint, searchIndexName, new AzureKeyCredential(searchApiKey));
 
             SearchOptions options = new()
 

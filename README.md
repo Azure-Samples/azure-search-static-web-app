@@ -47,7 +47,7 @@ When `useKeylessAuth=true`, the infra provisions:
 - `disableLocalAuth: true` on the search service
 - Search data-plane role assignments on the managed identity
 
-> **Note:** Keyless mode requires adapting the app to use a token credential (e.g., `DefaultAzureCredential`) since the shipped sample is key-based. The `bulk-insert` seed hook also uses key auth and will need adaptation in keyless mode.
+> **How the credential is selected:** Both the search API (`api/Search.cs`) and the data-upload tool (`bulk-insert`) choose their credential at runtime — if an API key is present they use it, otherwise they fall back to `DefaultAzureCredential` (managed identity). In keyless mode the infra omits the key and disables local auth, so the app authenticates via the user-assigned managed identity (the server container app receives `AZURE_CLIENT_ID`) and the seed hook seeds via your deployer identity, which is granted data-plane roles. No code changes needed to switch modes.
 
 ### Why these deployment files
 
