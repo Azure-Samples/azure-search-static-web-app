@@ -1,5 +1,4 @@
 ﻿using Azure;
-using Azure.Identity;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Azure.Search.Documents.Indexes.Models;
@@ -9,28 +8,14 @@ using ServiceStack;
 const string BOOKS_URL = "https://raw.githubusercontent.com/Azure-Samples/azure-search-sample-data/main/good-books/books.csv";
 string SEARCH_SERVICE_NAME = Environment.GetEnvironmentVariable("SEARCH_SERVICE_NAME") ?? throw new InvalidOperationException("SEARCH_SERVICE_NAME environment variable is not set.");
 string SEARCH_INDEX_NAME = Environment.GetEnvironmentVariable("SEARCH_INDEX_NAME") ?? "good-books";
+string SEARCH_API_KEY = Environment.GetEnvironmentVariable("SEARCH_API_KEY") ?? throw new InvalidOperationException("SEARCH_API_KEY environment variable is not set.");
 string SEARCH_ENDPOINT = $"https://{SEARCH_SERVICE_NAME}.search.windows.net";
-
 
 Uri searchEndpointUri = new(SEARCH_ENDPOINT);
 
-string searchApiKey = Environment.GetEnvironmentVariable("SEARCH_API_KEY") ?? "";
-
-SearchClient client;
-SearchIndexClient clientIndex;
-
-if (string.IsNullOrEmpty(searchApiKey))
-{
-    var cred = new AzureDeveloperCliCredential();
-    client = new SearchClient(searchEndpointUri, SEARCH_INDEX_NAME, cred);
-    clientIndex = new SearchIndexClient(searchEndpointUri, cred);
-}
-else
-{
-    var keyCred = new AzureKeyCredential(searchApiKey);
-    client = new SearchClient(searchEndpointUri, SEARCH_INDEX_NAME, keyCred);
-    clientIndex = new SearchIndexClient(searchEndpointUri, keyCred);
-}
+var keyCred = new AzureKeyCredential(SEARCH_API_KEY);
+SearchClient client = new(searchEndpointUri, SEARCH_INDEX_NAME, keyCred);
+SearchIndexClient clientIndex = new(searchEndpointUri, keyCred);
 
 await CreateIndexAsync(clientIndex);
 await BulkInsertAsync(client);

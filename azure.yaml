@@ -12,8 +12,15 @@ services:
     language: docker
 hooks:
   postprovision:
-    - name: Bulk Insert Data
-      command: |
-        cd ./bulk-insert
-        dotnet build
-        dotnet run
+    shell: sh
+    run: |
+      # Fetch the search admin key at runtime (never stored as plaintext output).
+      # SEARCH_SERVICE_NAME and AZURE_RESOURCE_GROUP are set by azd from bicep outputs/env.
+      SEARCH_API_KEY=$(az search admin-key show \
+        --service-name "$SEARCH_SERVICE_NAME" \
+        --resource-group "$AZURE_RESOURCE_GROUP" \
+        --query primaryKey -o tsv)
+      export SEARCH_API_KEY
+      cd ./bulk-insert
+      dotnet build
+      dotnet run

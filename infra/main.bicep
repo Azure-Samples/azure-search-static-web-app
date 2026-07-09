@@ -14,8 +14,8 @@ param location string
 @description('Id of the principal to assign database and application roles.')
 param deploymentUserPrincipalId string = ''
 
-@description('Use keyless (managed identity) authentication for Azure AI Search. Set to false to use API key authentication instead.')
-param useKeylessAuth bool = true
+@description('Use keyless (managed identity) authentication for Azure AI Search. Default false = API key auth (works with the shipped sample). Set true to provision keyless: disableLocalAuth + role assignments (requires adapting the app to a token credential).')
+param useKeylessAuth bool = false
 
 var resourceToken = toLower(uniqueString(resourceGroup().id, environmentName, location))
 
@@ -146,7 +146,7 @@ var serverSecrets = useKeylessAuth ? null : {
 
 var serverSearchApiKeyEnv = useKeylessAuth ? [] : [
   {
-    name: 'SEARCH_API_KEY'
+    name: 'SearchApiKey'
     secretRef: 'search-api-key'
   }
 ]
@@ -194,11 +194,11 @@ module serverContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
         env: concat(
           [
             {
-              name: 'SEARCH_SERVICE_NAME'
+              name: 'SearchServiceName'
               value: searchService.outputs.name
             }
             {
-              name: 'SEARCH_INDEX_NAME'
+              name: 'SearchIndexName'
               value: 'good-books'
             }
             {

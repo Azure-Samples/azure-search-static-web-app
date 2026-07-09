@@ -2,7 +2,6 @@ using Azure;
 using Azure.Core.Serialization;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
-using Azure.Identity;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -16,8 +15,9 @@ namespace WebSearch.Function
 {
     public class Search
     {
-        private static string searchServiceName = Environment.GetEnvironmentVariable("SEARCH_SERVICE_NAME", EnvironmentVariableTarget.Process);
-        private static string searchIndexName = Environment.GetEnvironmentVariable("SEARCH_INDEX_NAME", EnvironmentVariableTarget.Process) ?? "good-books";
+        private static string searchApiKey = Environment.GetEnvironmentVariable("SearchApiKey", EnvironmentVariableTarget.Process);
+        private static string searchServiceName = Environment.GetEnvironmentVariable("SearchServiceName", EnvironmentVariableTarget.Process);
+        private static string searchIndexName = Environment.GetEnvironmentVariable("SearchIndexName", EnvironmentVariableTarget.Process) ?? "good-books";
 
         private readonly ILogger<Lookup> _logger;
 
@@ -37,20 +37,11 @@ namespace WebSearch.Function
             // Azure AI Search 
             Uri serviceEndpoint = new($"https://{searchServiceName}.search.windows.net/");
 
-            string searchApiKey = Environment.GetEnvironmentVariable("SEARCH_API_KEY");
-            SearchClient searchClient;
-            if (string.IsNullOrEmpty(searchApiKey))
-            {
-                var credOptions = new DefaultAzureCredentialOptions
-                {
-                    ManagedIdentityClientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID")
-                };
-                searchClient = new SearchClient(serviceEndpoint, searchIndexName, new DefaultAzureCredential(credOptions));
-            }
-            else
-            {
-                searchClient = new SearchClient(serviceEndpoint, searchIndexName, new AzureKeyCredential(searchApiKey));
-            }
+            SearchClient searchClient = new(
+                serviceEndpoint,
+                searchIndexName,
+                new AzureKeyCredential(searchApiKey)
+            );
 
             SearchOptions options = new()
 

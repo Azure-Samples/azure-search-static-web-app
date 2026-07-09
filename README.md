@@ -21,7 +21,7 @@ azd auth login
 azd up
 ```
 
-This provisions all Azure resources (Azure AI Search, Container Apps, Container Registry) and deploys both containers. Authentication uses **managed identity — no API keys are required or stored**.
+This provisions all Azure resources (Azure AI Search, Container Apps, Container Registry) and deploys both containers. The default uses **API key authentication** — no code changes required.
 
 The `postprovision` hook automatically runs `bulk-insert` to create and populate the `good-books` search index after infrastructure is provisioned.
 
@@ -29,15 +29,30 @@ The `postprovision` hook automatically runs `bulk-insert` to create and populate
 
 | Variable | Description |
 |---|---|
-| `SEARCH_SERVICE_NAME` | Name of the Azure AI Search service |
+| `SEARCH_SERVICE_NAME` | Name of the Azure AI Search service (bicep output, used by seed hook) |
 | `SEARCH_INDEX_NAME` | Search index name (default: `good-books`) |
 
-**Authentication mode** — controlled by the `useKeylessAuth` Bicep parameter (default: `true`):
+### Authentication
 
-| Mode | How to set | Behavior |
-|---|---|---|
-| Managed identity (recommended) | default / `azd env set USE_KEYLESS_AUTH true` | No API keys; uses role assignments on the managed identity |
-| API key | `azd env set USE_KEYLESS_AUTH false` | Search admin key injected as a secret env var; local-auth enabled on the search service |
+By default, the search service is configured with **API key authentication** — the admin key is retrieved at deploy time and injected as a container secret. The shipped `api/Search.cs` reads `SearchApiKey`, `SearchServiceName`, and `SearchIndexName` env vars and works out of the box.
+
+**Optional keyless (managed identity) auth** can be enabled by setting `useKeylessAuth=true`:
+
+```bash
+azd env set USE_KEYLESS_AUTH true
+azd up
+```
+
+When `useKeylessAuth=true`, the infra provisions:
+- `disableLocalAuth: true` on the search service
+- Search data-plane role assignments on the managed identity
+
+> **Note:** Keyless mode requires adapting the app to use a token credential (e.g., `DefaultAzureCredential`) since the shipped sample is key-based. The `bulk-insert` seed hook also uses key auth and will need adaptation in keyless mode.
+
+### Why these deployment files
+
+- **Client runtime config (`docker-entrypoint.sh` + `/config.js` + `url-fetch.js`)**: Vite bakes `VITE_*` env at BUILD time, but the backend's Container Apps FQDN isn't known until provisioning; the client reads the backend URL at container start via an injected `/config.js` (`window.__APP_CONFIG__`). Deployment wiring, not app logic.
+- **bulk-insert azd seed hook**: the sample needs a populated search index to function; wiring `bulk-insert` as an `azd` postprovision hook (reading connection info from the provisioned resources via env) auto-seeds the index on `azd up` instead of manually editing placeholder constants.
 
 To redeploy after code changes: `azd deploy`
 
