@@ -16,7 +16,7 @@ hooks:
     run: |
       # Key mode: fetch the search admin key at runtime (never stored as plaintext output).
       # Keyless mode (USE_KEYLESS_AUTH=true): local auth is disabled, so skip the key and let
-      # bulk-insert authenticate via DefaultAzureCredential (the deployer holds data-plane roles).
+      # bulk-insert authenticate via DefaultAzureCredential using the signed-in deployer's Azure CLI identity, which infra granted Search data-plane roles.
       # SEARCH_SERVICE_NAME and AZURE_RESOURCE_GROUP are set by azd from bicep outputs/env.
       if [ "$USE_KEYLESS_AUTH" != "true" ]; then
         SEARCH_API_KEY=$(az search admin-key show \
@@ -28,4 +28,14 @@ hooks:
       export SEARCH_INDEX_NAME=good-books
       cd ./bulk-insert
       dotnet build
-      dotnet run
+      if [ "$USE_KEYLESS_AUTH" = "true" ]; then
+        # Keyless: role assignments can take ~1 min to propagate. Retry the seed on failure.
+        n=0
+        until dotnet run || [ "$n" -ge 5 ]; do
+          n=$((n+1))
+          echo "Seed attempt failed (likely RBAC role propagation); retrying in 30s ($n/5)..."
+          sleep 30
+        done
+      else
+        dotnet run
+      fi

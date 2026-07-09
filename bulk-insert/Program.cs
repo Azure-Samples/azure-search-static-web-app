@@ -14,20 +14,13 @@ string SEARCH_ENDPOINT = $"https://{SEARCH_SERVICE_NAME}.search.windows.net";
 
 Uri searchEndpointUri = new(SEARCH_ENDPOINT);
 
-SearchClient client;
-SearchIndexClient clientIndex;
-if (string.IsNullOrEmpty(SEARCH_API_KEY))
-{
-    var cred = new DefaultAzureCredential();
-    client = new(searchEndpointUri, SEARCH_INDEX_NAME, cred);
-    clientIndex = new(searchEndpointUri, cred);
-}
-else
-{
-    var keyCred = new AzureKeyCredential(SEARCH_API_KEY);
-    client = new(searchEndpointUri, SEARCH_INDEX_NAME, keyCred);
-    clientIndex = new(searchEndpointUri, keyCred);
-}
+SearchClient client = string.IsNullOrEmpty(SEARCH_API_KEY)
+    ? new(searchEndpointUri, SEARCH_INDEX_NAME, new DefaultAzureCredential())
+    : new(searchEndpointUri, SEARCH_INDEX_NAME, new AzureKeyCredential(SEARCH_API_KEY));
+
+SearchIndexClient clientIndex = string.IsNullOrEmpty(SEARCH_API_KEY)
+    ? new(searchEndpointUri, new DefaultAzureCredential())
+    : new(searchEndpointUri, new AzureKeyCredential(SEARCH_API_KEY));
 
 await CreateIndexAsync(clientIndex);
 await BulkInsertAsync(client);
