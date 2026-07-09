@@ -1,18 +1,18 @@
-# Use an official Node.js runtime as a base image
-FROM node:18-alpine
-
-# Set the working directory
-WORKDIR /usr/src/app
-
-# Copy the static files to the container
+# Stage 1: build the Vite app
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
 COPY . .
+RUN npm run build
 
-# Expose the port the app runs on
+# Stage 2: serve the built static site
+FROM node:20-alpine
+WORKDIR /app
+RUN npm install -g serve
+COPY --from=build /app/build ./build
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 ENV PORT=3000
 EXPOSE 3000
-
-# Use a simple HTTP server to serve the static files
-RUN npm install -g http-server
-
-# Start the HTTP server
-CMD ["http-server", "-p", "3000"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

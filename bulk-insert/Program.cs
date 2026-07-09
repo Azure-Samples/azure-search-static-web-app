@@ -14,7 +14,6 @@ const string SEARCH_ENDPOINT = $"https://{SEARCH_SERVICE_NAME}.search.windows.ne
 
 Uri searchEndpointUri = new(SEARCH_ENDPOINT);
 
-// Use DefaultAzureCredential for authentication
 SearchClient client = new(
     searchEndpointUri,
     SEARCH_INDEX_NAME,

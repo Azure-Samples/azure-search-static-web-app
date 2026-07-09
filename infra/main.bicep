@@ -32,6 +32,14 @@ module managedIdentity 'br/public:avm/res/managed-identity/user-assigned-identit
   }
 }
 
+var registryRolesForUser = empty(deploymentUserPrincipalId) ? [] : [
+  {
+    principalId: deploymentUserPrincipalId
+    principalType: 'User'
+    roleDefinitionIdOrName: '8311e382-0749-4cb8-b61a-304f252e45ec' // AcrPush
+  }
+]
+
 module containerRegistry 'br/public:avm/res/container-registry/registry:0.9.1' = {
   name: 'container-registry'
   params: {
@@ -42,16 +50,16 @@ module containerRegistry 'br/public:avm/res/container-registry/registry:0.9.1' =
     anonymousPullEnabled: false
     publicNetworkAccess: 'Enabled'
     acrSku: 'Standard'
-    roleAssignments: [
-      {
-        principalId: managedIdentity.outputs.principalId
-        roleDefinitionIdOrName: '7f951dda-4ed3-4680-a7ca-43fe172d538d' // AcrPull
-      }
-      {
-        principalId: deploymentUserPrincipalId
-        roleDefinitionIdOrName: '8311e382-0749-4cb8-b61a-304f252e45ec' // AcrPush
-      }
-    ]
+    roleAssignments: concat(
+      [
+        {
+          principalId: managedIdentity.outputs.principalId
+          principalType: 'ServicePrincipal'
+          roleDefinitionIdOrName: '7f951dda-4ed3-4680-a7ca-43fe172d538d' // AcrPull
+        }
+      ],
+      registryRolesForUser
+    )
   }
 }
 
@@ -89,7 +97,7 @@ module clientContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
     scaleMaxReplicas: 1
     scaleMinReplicas: 1
     corsPolicy: {
-      allowCredentials: true
+      allowCredentials: false
       allowedOrigins: [
         '*'
       ]
@@ -106,14 +114,6 @@ module clientContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
         identity: managedIdentity.outputs.resourceId
       }
     ]
-    secrets: {
-      secureList: [
-        {
-          name: 'azure-backend-url'
-          value: serverContainerApp.outputs.fqdn
-        }
-      ]
-    }
     containers: [
       {
         // Use parameter to control which image to use
@@ -128,7 +128,7 @@ module clientContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
         env: [
           {
             name: 'AZURE_BACKEND_URL'
-            secretRef: 'azure-backend-url'
+            value: 'https://${serverContainerApp.outputs.fqdn}'
           }
         ]
       }
@@ -150,9 +150,9 @@ module serverContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
     scaleMaxReplicas: 1
     scaleMinReplicas: 1
     corsPolicy: {
-      allowCredentials: true
+      allowCredentials: false
       allowedOrigins: [
-        '*' // Start with allowing all origins
+        '*'
       ]
     }
     managedIdentities: {
@@ -187,22 +187,46 @@ module serverContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
             name: 'SEARCH_INDEX_NAME'
             value: 'good-books'
           }
+          {
+            name: 'AZURE_CLIENT_ID'
+            value: managedIdentity.outputs.clientId
+          }
         ]
       }
     ]
   }
 }
 
+var searchRolesForIdentity = [
+  {
+    principalId: managedIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionIdOrName: 'Search Index Data Contributor'
+  }
+  {
+    principalId: managedIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionIdOrName: 'Search Service Contributor'
+  }
+]
+var searchRolesForUser = empty(deploymentUserPrincipalId) ? [] : [
+  {
+    principalId: deploymentUserPrincipalId
+    principalType: 'User'
+    roleDefinitionIdOrName: 'Search Index Data Contributor'
+  }
+  {
+    principalId: deploymentUserPrincipalId
+    principalType: 'User'
+    roleDefinitionIdOrName: 'Search Service Contributor'
+  }
+]
+
 module searchService 'br/public:avm/res/search/search-service:0.9.2' = {
   name: 'searchServiceDeployment'
   params: {
     name: 'search${resourceToken}'
-    authOptions: {
-      aadOrApiKey: {
-        aadAuthFailureMode: 'http401WithBearerChallenge'
-      }
-    }
-    disableLocalAuth: false
+    disableLocalAuth: true
     location: location
     partitionCount: 1
     replicaCount: 1
@@ -214,44 +238,7 @@ module searchService 'br/public:avm/res/search/search-service:0.9.2' = {
         managedIdentity.outputs.resourceId
       ]
     }
-    roleAssignments: [
-      {
-        name: '73ec30e0-2e25-475f-beec-d90cab332eb7'
-        principalId: managedIdentity.outputs.principalId
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: 'Owner'
-      }
-      {
-        name: '1407120a-92aa-4202-b7e9-c0e197c71c8f'
-        principalId: managedIdentity.outputs.principalId
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: 'Search Index Data Contributor'
-      }
-      {
-        name: '7ca78c08-252a-4471-8644-bb5ff32d4ba0'
-        principalId: managedIdentity.outputs.principalId
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: 'Search Service Contributor'
-      }
-      {
-        name: '73ec30e0-2e25-475f-beec-d90cab332eb7'
-        principalId: deploymentUserPrincipalId
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: 'Owner'
-      }
-      {
-        name: '1407120a-92aa-4202-b7e9-c0e197c71c8f'
-        principalId: deploymentUserPrincipalId
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: 'Search Index Data Contributor'
-      }
-      {
-        name: '7ca78c08-252a-4471-8644-bb5ff32d4ba0'
-        principalId: deploymentUserPrincipalId
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: 'Search Service Contributor'
-      }
-    ]
+    roleAssignments: concat(searchRolesForIdentity, searchRolesForUser)
   }
 }
 

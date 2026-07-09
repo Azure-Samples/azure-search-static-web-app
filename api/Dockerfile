@@ -17,3 +17,4 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
 COPY --from=build-env /home/site/wwwroot /home/site/wwwroot
 
 EXPOSE 80
+

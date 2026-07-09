@@ -1,7 +1,8 @@
-// Use localhost in development, empty string in production for relative URLs
-const baseURL = import.meta.env.DEV 
+// Use localhost in development, runtime-injected config or env var in production
+const runtimeBackendUrl = (typeof window !== 'undefined' && window.__APP_CONFIG__ && window.__APP_CONFIG__.BACKEND_URL) || '';
+const baseURL = import.meta.env.DEV
     ? (import.meta.env.VITE_REACT_APP_BACKEND_URL || 'http://localhost:7071')
-    : (import.meta.env.VITE_REACT_APP_BACKEND_URL || '');
+    : (runtimeBackendUrl || import.meta.env.VITE_REACT_APP_BACKEND_URL || '');
 console.log(`baseURL = ${baseURL}`);
 console.log(`Environment: ${import.meta.env.MODE}`);
 

@@ -12,6 +12,30 @@ This C# sample includes two programs and an Azure function.
 
 This README is an shortened version of the [full tutorial](https://aka.ms/search-website-tutorial) and provides just the steps for running the sample. For more information and screenshots, see the tutorial.
 
+## Deploy with the Azure Developer CLI (azd)
+
+**Prerequisites:** [Azure Developer CLI](https://aka.ms/azd), Docker, .NET 9
+
+```bash
+azd auth login
+azd up
+```
+
+This provisions all Azure resources (Azure AI Search, Container Apps, Container Registry) and deploys both containers. Authentication uses **managed identity — no API keys are required or stored**.
+
+The `postprovision` hook automatically runs `bulk-insert` to create and populate the `good-books` search index after infrastructure is provisioned.
+
+**Key environment variables** (set automatically by azd from `infra/main.bicepparam`):
+
+| Variable | Description |
+|---|---|
+| `SEARCH_SERVICE_NAME` | Name of the Azure AI Search service |
+| `SEARCH_INDEX_NAME` | Search index name (default: `good-books`) |
+
+To redeploy after code changes: `azd deploy`
+
+
+
 ## Prerequisites
 
 * [Node.js](https://nodejs.org/en/download/package-manager)

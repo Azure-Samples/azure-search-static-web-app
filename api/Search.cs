@@ -40,7 +40,7 @@ namespace WebSearch.Function
             SearchClient searchClient = new(
                 serviceEndpoint,
                 searchIndexName,
-                new DefaultAzureCredential() // Use DefaultAzureCredential for authentication
+                new DefaultAzureCredential()
             );
 
             SearchOptions options = new()
