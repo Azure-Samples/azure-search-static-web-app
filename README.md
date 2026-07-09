@@ -32,6 +32,13 @@ The `postprovision` hook automatically runs `bulk-insert` to create and populate
 | `SEARCH_SERVICE_NAME` | Name of the Azure AI Search service |
 | `SEARCH_INDEX_NAME` | Search index name (default: `good-books`) |
 
+**Authentication mode** — controlled by the `useKeylessAuth` Bicep parameter (default: `true`):
+
+| Mode | How to set | Behavior |
+|---|---|---|
+| Managed identity (recommended) | default / `azd env set USE_KEYLESS_AUTH true` | No API keys; uses role assignments on the managed identity |
+| API key | `azd env set USE_KEYLESS_AUTH false` | Search admin key injected as a secret env var; local-auth enabled on the search service |
+
 To redeploy after code changes: `azd deploy`
 
 ## Prerequisites

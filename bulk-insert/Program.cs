@@ -7,26 +7,35 @@ using AzureSearch.BulkInsert;
 using ServiceStack;
 
 const string BOOKS_URL = "https://raw.githubusercontent.com/Azure-Samples/azure-search-sample-data/main/good-books/books.csv";
-const string SEARCH_SERVICE_NAME = Environment.GetEnvironmentVariable("SEARCH_SERVICE_NAME") ?? throw new InvalidOperationException("SEARCH_SERVICE_NAME environment variable is not set.");
-const string SEARCH_INDEX_NAME = Environment.GetEnvironmentVariable("SEARCH_INDEX_NAME") ?? "good-books";
-const string SEARCH_ENDPOINT = $"https://{SEARCH_SERVICE_NAME}.search.windows.net";
+string SEARCH_SERVICE_NAME = Environment.GetEnvironmentVariable("SEARCH_SERVICE_NAME") ?? throw new InvalidOperationException("SEARCH_SERVICE_NAME environment variable is not set.");
+string SEARCH_INDEX_NAME = Environment.GetEnvironmentVariable("SEARCH_INDEX_NAME") ?? "good-books";
+string SEARCH_ENDPOINT = $"https://{SEARCH_SERVICE_NAME}.search.windows.net";
 
 
 Uri searchEndpointUri = new(SEARCH_ENDPOINT);
 
-SearchClient client = new(
-    searchEndpointUri,
-    SEARCH_INDEX_NAME,
-    new AzureDeveloperCliCredential());
+string searchApiKey = Environment.GetEnvironmentVariable("SEARCH_API_KEY") ?? "";
 
-SearchIndexClient clientIndex = new(
-    searchEndpointUri,
-    new AzureDeveloperCliCredential());
+SearchClient client;
+SearchIndexClient clientIndex;
+
+if (string.IsNullOrEmpty(searchApiKey))
+{
+    var cred = new AzureDeveloperCliCredential();
+    client = new SearchClient(searchEndpointUri, SEARCH_INDEX_NAME, cred);
+    clientIndex = new SearchIndexClient(searchEndpointUri, cred);
+}
+else
+{
+    var keyCred = new AzureKeyCredential(searchApiKey);
+    client = new SearchClient(searchEndpointUri, SEARCH_INDEX_NAME, keyCred);
+    clientIndex = new SearchIndexClient(searchEndpointUri, keyCred);
+}
 
 await CreateIndexAsync(clientIndex);
 await BulkInsertAsync(client);
 
-static async Task CreateIndexAsync(SearchIndexClient clientIndex)
+async Task CreateIndexAsync(SearchIndexClient clientIndex)
 {
     Console.WriteLine("Creating (or updating) search index");
     SearchIndex index = new BookSearchIndex(SEARCH_INDEX_NAME);
@@ -35,7 +44,7 @@ static async Task CreateIndexAsync(SearchIndexClient clientIndex)
     Console.WriteLine(result);
 }
 
-static async Task BulkInsertAsync(SearchClient client)
+async Task BulkInsertAsync(SearchClient client)
 {
     Console.WriteLine("Download data file");
     using HttpClient httpClient = new();

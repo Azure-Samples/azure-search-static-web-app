@@ -14,11 +14,16 @@ param location string
 @description('Id of the principal to assign database and application roles.')
 param deploymentUserPrincipalId string = ''
 
+@description('Use keyless (managed identity) authentication for Azure AI Search. Set to false to use API key authentication instead.')
+param useKeylessAuth bool = true
+
 var resourceToken = toLower(uniqueString(resourceGroup().id, environmentName, location))
 
 var tags = {
   'azd-env-name': environmentName
 }
+
+var searchServiceResourceName = 'search${resourceToken}'
 
 module managedIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.4.0' = {
   name: 'user-assigned-identity'
@@ -130,6 +135,22 @@ module clientContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
   }
 }
 
+var serverSecrets = useKeylessAuth ? null : {
+  secureList: [
+    {
+      name: 'search-api-key'
+      value: listAdminKeys(resourceId('Microsoft.Search/searchServices', searchServiceResourceName), '2023-11-01').primaryKey
+    }
+  ]
+}
+
+var serverSearchApiKeyEnv = useKeylessAuth ? [] : [
+  {
+    name: 'SEARCH_API_KEY'
+    secretRef: 'search-api-key'
+  }
+]
+
 module serverContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
   name: 'server'
   params: {
@@ -161,6 +182,7 @@ module serverContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
         identity: managedIdentity.outputs.resourceId
       }
     ]
+    secrets: serverSecrets
     containers: [
       {
         image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest' // Placeholder; azd deploy builds and pushes the real image and updates this container app
@@ -169,26 +191,29 @@ module serverContainerApp 'br/public:avm/res/app/container-app:0.9.0' = {
           cpu: '0.25'
           memory: '.5Gi'
         }
-        env: [
-          {
-            name: 'SEARCH_SERVICE_NAME'
-            value: searchService.outputs.name
-          }
-          {
-            name: 'SEARCH_INDEX_NAME'
-            value: 'good-books'
-          }
-          {
-            name: 'AZURE_CLIENT_ID'
-            value: managedIdentity.outputs.clientId
-          }
-        ]
+        env: concat(
+          [
+            {
+              name: 'SEARCH_SERVICE_NAME'
+              value: searchService.outputs.name
+            }
+            {
+              name: 'SEARCH_INDEX_NAME'
+              value: 'good-books'
+            }
+            {
+              name: 'AZURE_CLIENT_ID'
+              value: managedIdentity.outputs.clientId
+            }
+          ],
+          serverSearchApiKeyEnv
+        )
       }
     ]
   }
 }
 
-var searchRolesForIdentity = [
+var searchRolesForIdentity = useKeylessAuth ? [
   {
     principalId: managedIdentity.outputs.principalId
     principalType: 'ServicePrincipal'
@@ -199,7 +224,7 @@ var searchRolesForIdentity = [
     principalType: 'ServicePrincipal'
     roleDefinitionIdOrName: 'Search Service Contributor'
   }
-]
+] : []
 var searchRolesForUser = empty(deploymentUserPrincipalId) ? [] : [
   {
     principalId: deploymentUserPrincipalId
@@ -216,8 +241,8 @@ var searchRolesForUser = empty(deploymentUserPrincipalId) ? [] : [
 module searchService 'br/public:avm/res/search/search-service:0.9.2' = {
   name: 'searchServiceDeployment'
   params: {
-    name: 'search${resourceToken}'
-    disableLocalAuth: true
+    name: searchServiceResourceName
+    disableLocalAuth: useKeylessAuth
     location: location
     partitionCount: 1
     replicaCount: 1

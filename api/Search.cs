@@ -37,11 +37,20 @@ namespace WebSearch.Function
             // Azure AI Search 
             Uri serviceEndpoint = new($"https://{searchServiceName}.search.windows.net/");
 
-            SearchClient searchClient = new(
-                serviceEndpoint,
-                searchIndexName,
-                new DefaultAzureCredential()
-            );
+            string searchApiKey = Environment.GetEnvironmentVariable("SEARCH_API_KEY");
+            SearchClient searchClient;
+            if (string.IsNullOrEmpty(searchApiKey))
+            {
+                var credOptions = new DefaultAzureCredentialOptions
+                {
+                    ManagedIdentityClientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID")
+                };
+                searchClient = new SearchClient(serviceEndpoint, searchIndexName, new DefaultAzureCredential(credOptions));
+            }
+            else
+            {
+                searchClient = new SearchClient(serviceEndpoint, searchIndexName, new AzureKeyCredential(searchApiKey));
+            }
 
             SearchOptions options = new()
 
