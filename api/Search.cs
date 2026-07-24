@@ -19,6 +19,10 @@ namespace WebSearch.Function
         private static string searchApiKey = Environment.GetEnvironmentVariable("SearchApiKey", EnvironmentVariableTarget.Process);
         private static string searchServiceName = Environment.GetEnvironmentVariable("SearchServiceName", EnvironmentVariableTarget.Process);
         private static string searchIndexName = Environment.GetEnvironmentVariable("SearchIndexName", EnvironmentVariableTarget.Process) ?? "good-books";
+        private static bool useKeyAuth = string.Equals(
+            Environment.GetEnvironmentVariable("SEARCH_USE_KEY_AUTH", EnvironmentVariableTarget.Process),
+            "true",
+            StringComparison.OrdinalIgnoreCase);
 
         private readonly ILogger<Lookup> _logger;
 
@@ -38,9 +42,18 @@ namespace WebSearch.Function
             // Azure AI Search 
             Uri serviceEndpoint = new($"https://{searchServiceName}.search.windows.net/");
 
-            SearchClient searchClient = string.IsNullOrEmpty(searchApiKey)
-                ? new SearchClient(serviceEndpoint, searchIndexName, new DefaultAzureCredential())
-                : new SearchClient(serviceEndpoint, searchIndexName, new AzureKeyCredential(searchApiKey));
+            SearchClient searchClient;
+            if (useKeyAuth)
+            {
+                searchClient = new SearchClient(
+                    serviceEndpoint,
+                    searchIndexName,
+                    new AzureKeyCredential(searchApiKey ?? throw new InvalidOperationException("SearchApiKey environment variable is required when SEARCH_USE_KEY_AUTH is true.")));
+            }
+            else
+            {
+                searchClient = new SearchClient(serviceEndpoint, searchIndexName, new DefaultAzureCredential());
+            }
 
             SearchOptions options = new()
 

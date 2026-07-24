@@ -14,8 +14,8 @@ param location string
 @description('Id of the principal to assign database and application roles.')
 param deploymentUserPrincipalId string = ''
 
-@description('Use keyless (managed identity) authentication for Azure AI Search. Default false = API key auth (works with the shipped sample). Set true to provision keyless: disableLocalAuth + role assignments (requires adapting the app to a token credential).')
-param useKeylessAuth bool = false
+@description('Use keyless (managed identity) authentication for Azure AI Search. Default enables keyless auth: disableLocalAuth + role assignments. Set to a non-true value only for explicit API key auth opt-in.')
+param useKeylessAuth bool = true
 
 var resourceToken = toLower(uniqueString(resourceGroup().id, environmentName, location))
 
@@ -148,6 +148,10 @@ var serverSearchApiKeyEnv = useKeylessAuth ? [] : [
   {
     name: 'SearchApiKey'
     secretRef: 'search-api-key'
+  }
+  {
+    name: 'SEARCH_USE_KEY_AUTH'
+    value: 'true'
   }
 ]
 

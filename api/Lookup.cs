@@ -1,5 +1,6 @@
 using Azure;
 using Azure.Core.Serialization;
+using Azure.Identity;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using Microsoft.Azure.Functions.Worker;
@@ -16,6 +17,10 @@ namespace WebSearch.Function
         private static string searchApiKey = Environment.GetEnvironmentVariable("SearchApiKey", EnvironmentVariableTarget.Process);
         private static string searchServiceName = Environment.GetEnvironmentVariable("SearchServiceName", EnvironmentVariableTarget.Process);
         private static string searchIndexName = Environment.GetEnvironmentVariable("SearchIndexName", EnvironmentVariableTarget.Process) ?? "good-books";
+        private static bool useKeyAuth = string.Equals(
+            Environment.GetEnvironmentVariable("SEARCH_USE_KEY_AUTH", EnvironmentVariableTarget.Process),
+            "true",
+            StringComparison.OrdinalIgnoreCase);
 
         private readonly ILogger<Lookup> _logger;
 
@@ -38,12 +43,18 @@ namespace WebSearch.Function
             // Azure AI Search 
             Uri serviceEndpoint = new($"https://{searchServiceName}.search.windows.net/");
 
-            SearchClient searchClient = new(
-
-                serviceEndpoint,
-                searchIndexName,
-                new AzureKeyCredential(searchApiKey)
-            );
+            SearchClient searchClient;
+            if (useKeyAuth)
+            {
+                searchClient = new SearchClient(
+                    serviceEndpoint,
+                    searchIndexName,
+                    new AzureKeyCredential(searchApiKey ?? throw new InvalidOperationException("SearchApiKey environment variable is required when SEARCH_USE_KEY_AUTH is true.")));
+            }
+            else
+            {
+                searchClient = new SearchClient(serviceEndpoint, searchIndexName, new DefaultAzureCredential());
+            }
 
             var getDocumentResponse = await searchClient.GetDocumentAsync<SearchDocument>(documentId);
 
