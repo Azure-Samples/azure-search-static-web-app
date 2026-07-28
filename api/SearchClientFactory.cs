@@ -31,6 +31,9 @@ namespace WebSearch.Function
         // Builds a SearchClient for the configured index using the selected credential.
         public static SearchClient CreateSearchClient()
         {
+            if (string.IsNullOrWhiteSpace(SearchServiceName))
+                throw new InvalidOperationException("SearchServiceName environment variable is not set. It is required to build the Azure AI Search endpoint URI.");
+
             Uri serviceEndpoint = new($"https://{SearchServiceName}.search.windows.net/");
 
             if (UseKeyAuth)
