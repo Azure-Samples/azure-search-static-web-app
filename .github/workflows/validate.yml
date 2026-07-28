@@ -1,0 +1,62 @@
+name: Validate sample
+
+# Manual-only build, lint, and vulnerability gate. No Azure resources required.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  client:
+    name: Client (build, lint, audit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Audit (fail on high or critical)
+        run: npm audit --audit-level=high
+
+  dotnet:
+    name: .NET (build, vulnerability scan)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project:
+          - api
+          - bulk-insert
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Build and scan ${{ matrix.project }}
+        run: |
+          dotnet build "${{ matrix.project }}" -c Release
+          echo "Scanning ${{ matrix.project }} for vulnerable packages..."
+          report=$(dotnet list "${{ matrix.project }}" package --vulnerable --include-transitive)
+          echo "$report"
+          if echo "$report" | grep -q '>'; then
+            echo "::error::Vulnerable packages detected in ${{ matrix.project }}"
+            exit 1
+          fi
