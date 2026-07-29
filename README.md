@@ -2,19 +2,49 @@
 
 This code sample builds a web site on Azure to search through a catalog of books. Searchable content is indexed and queried on Azure AI Search, and the app runs on Azure Container Apps.
 
-This C# sample includes two programs and an Azure function.
+This sample includes a C# bulk-insert app, a C# Azure Functions API, and a React/Node.js web client.
 
-| components | Description |
+| Component | Description |
 |---------|-------------|
 | bulk-insert app | Creates and loads the "goodbooks" index on Azure AI Search. It demonstrates index creation and batch mode indexing. Sample data is loaded from the [azure-search-sample-data](https://github.com/Azure-Samples/azure-search-sample-data/tree/main/good-books) repository.|
 | client app | Provides the client code. The web front-end includes a search page with faceted navigation, a search bar for free form search and suggested queries, and tabbed page results. It's written in JavaScript, uses Node.js for the runtime, and uses React libraries for user interaction. |
-| api | Provides the Azure function used by the client to send queries to the search index. |
+| api | Provides the Azure Functions app used by the client to send queries to the search index. |
 
 This README is a shortened version of the [full tutorial](https://aka.ms/search-website-tutorial) and provides just the steps for running the sample. For more information and screenshots, see the tutorial.
 
-## Deploy with the Azure Developer CLI (azd)
+## Prerequisites
 
-**Prerequisites:** [Azure Developer CLI](https://aka.ms/azd), Docker, .NET 9
+* An active Azure subscription
+* [Azure Developer CLI](https://aka.ms/azd)
+* [Docker](https://docs.docker.com/get-docker/)
+* [.NET 9](https://dotnet.microsoft.com/download/dotnet/9.0)
+* [Node.js 18.x LTS or later](https://nodejs.org/en/download/package-manager)
+* [Git](https://git-scm.com/downloads)
+
+The deploying user also needs the following Azure RBAC roles on the Azure AI Search service to enable keyless (managed identity) authentication. Without them, deployment succeeds but search queries fail:
+
+* **Search Index Data Contributor** — grants data-plane access to create and populate the index
+* **Search Service Contributor** — grants service-level management access
+
+For local development of the API or client:
+
+* [Visual Studio Code](https://code.visualstudio.com/Download)
+* [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
+* [Using .NET in Visual Studio Code](https://code.visualstudio.com/docs/languages/dotnet)
+
+## Download sample repository
+
+1. On GitHub, fork the repository.
+
+1. In a terminal, use git to clone this repository to your local computer:
+
+    ```bash
+    git clone https://github.com/Azure-Samples/azure-search-static-web-app
+    ```
+
+1. Open that local directory in Visual Studio Code.
+
+## Deploy with the Azure Developer CLI (azd)
 
 ```bash
 azd auth login
@@ -47,40 +77,13 @@ When `USE_KEYLESS_AUTH=false`, the infra provisions the admin key as a container
 
 > **How the credential is selected:** The search API (`api/SearchClientFactory.cs`) reads the `SEARCH_USE_KEY_AUTH` environment variable at runtime. When it is `true`, `AzureKeyCredential` is used with the injected `SearchApiKey`; otherwise `DefaultAzureCredential` is used (keyless default). The same logic applies to the `bulk-insert` seed hook. No code changes needed to switch modes.
 
-### Why these deployment files
-
-- **Client runtime config (`docker-entrypoint.sh` + `/config.js` + `url-fetch.js`)**: Vite bakes `VITE_*` env at BUILD time, but the backend's Container Apps FQDN isn't known until provisioning; the client reads the backend URL at container start via an injected `/config.js` (`window.__APP_CONFIG__`). Deployment wiring, not app logic.
-- **bulk-insert azd seed hook**: the sample needs a populated search index to function; wiring `bulk-insert` as an `azd` postprovision hook (reading connection info from the provisioned resources via env) auto-seeds the index on `azd up` instead of manually editing placeholder constants.
+> [!NOTE]
+> **Why these deployment files**
+> - **Client runtime config (`docker-entrypoint.sh` + `/config.js` + `url-fetch.js`)**: Vite bakes `VITE_*` env at BUILD time, but the backend's Container Apps FQDN isn't known until provisioning; the client reads the backend URL at container start via an injected `/config.js` (`window.__APP_CONFIG__`). Deployment wiring, not app logic.
+> - **bulk-insert azd seed hook**: the sample needs a populated search index to function; wiring `bulk-insert` as an `azd` postprovision hook (reading connection info from the provisioned resources via env) auto-seeds the index on `azd up` instead of manually editing placeholder constants.
 
 To redeploy after code changes: `azd deploy`
-
-## Prerequisites
-
-* [Azure Developer CLI](https://aka.ms/azd)
-* [Docker](https://docs.docker.com/get-docker/)
-* [.NET 9](https://dotnet.microsoft.com/download/dotnet/9.0)
-* [Node.js](https://nodejs.org/en/download/package-manager)
-* [Git](https://git-scm.com/downloads)
-
-For local development of the API or client:
-
-* [Visual Studio Code](https://code.visualstudio.com/Download)
-* [Azure Functions Core Tools](https://docs.microsoft.com/azure/azure-functions/functions-run-local?WT.mc_id=shopathome-github-jopapa)
-* [Using .NET in Visual Studio Code](https://code.visualstudio.com/docs/languages/dotnet)
-
-## Download sample repository
-
-1. On GitHub, fork the repository.
-
-1. In a terminal, use git to clone this repository to your local computer:
-
-    ```bash
-    git clone https://github.com/Azure-Samples/azure-search-static-web-app
-    ```
-
-1. Open that local directory in Visual Studio Code.
 
 ## Browse the deployed app
 
 After `azd up` completes, the CLI prints the URL for the client Container App. Open that URL in your browser, enter a search query such as `code`, and review the results.
-
