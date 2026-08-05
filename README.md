@@ -21,10 +21,9 @@ This README is a shortened version of the [full tutorial](https://aka.ms/search-
 * [Node.js 18.x LTS or later](https://nodejs.org/en/download/package-manager)
 * [Git](https://git-scm.com/downloads)
 
-The deploying user also needs the following Azure RBAC roles on the Azure AI Search service to enable keyless (managed identity) authentication. Without them, deployment succeeds but search queries fail:
+Because deployment assigns Azure roles automatically, the deploying user needs permission to create role assignments on the target resource group — the **Owner** or **User Access Administrator** role (which grants `Microsoft.Authorization/roleAssignments/write`). Without it, `azd up` fails when it provisions the role assignments.
 
-* **Search Index Data Contributor** — grants data-plane access to create and populate the index
-* **Search Service Contributor** — grants service-level management access
+You don't need to hold any Azure AI Search data-plane roles in advance. During provisioning, `main.bicep` assigns **Search Index Data Contributor** and **Search Service Contributor** to both the app's managed identity (for keyless query access) and the deploying user (so the `postprovision` `bulk-insert` hook can create and populate the index).
 
 For local development of the API or client:
 
