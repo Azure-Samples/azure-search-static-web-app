@@ -72,7 +72,54 @@ azd up
 
 When `USE_KEYLESS_AUTH=false`, the infra provisions the admin key as a container secret and sets `SEARCH_USE_KEY_AUTH=true` on the server container, which causes `api/SearchClientFactory.cs` to use `AzureKeyCredential` instead of `DefaultAzureCredential`.
 
-> **How the credential is selected:** The search API (`api/SearchClientFactory.cs`) reads the `SEARCH_USE_KEY_AUTH` environment variable at runtime. When it is `true`, `AzureKeyCredential` is used with the injected `SearchApiKey`; otherwise `DefaultAzureCredential` is used (keyless default). The same logic applies to the `bulk-insert` seed hook. No code changes needed to switch modes.
+#### Keyless Authentication Configuration (Two Environment Variables)
+
+The keyless authentication setup uses **two distinct environment variables** for different purposes and times:
+
+1. **Infrastructure Provisioning Time: `useKeylessAuth` (Bicep parameter)**
+   - **When:** `azd up` executes the Bicep template (`infra/main.bicep`)
+   - **Purpose:** Determines whether the Azure AI Search service disables local auth and enables role-based access control (RBAC)
+   - **Values:** `true` (default) or `false`
+   - **Effect:**
+     - `true`: Sets `disableLocalAuth: true` on the search service, requiring keyless auth; assigns Search RBAC roles to the managed identity
+     - `false`: Allows API key auth; provisions and injects the admin key as a container secret
+   - **Set via:** `azure.yaml` hooks or `azd env set` / `azd config` during provisioning
+   
+2. **Runtime: `SEARCH_USE_KEY_AUTH` (Application Environment Variable)**
+   - **When:** Application containers start (server and bulk-insert)
+   - **Purpose:** Switches the search credential strategy at runtime (keyless vs API key)
+   - **Values:** `true` (use API key) or unset/`false` (use keyless/DefaultAzureCredential)
+   - **Effect:**
+     - `SearchClientFactory.cs` reads this variable and selects the credential type
+     - When `true`: Uses `AzureKeyCredential` with the injected key
+     - When `false`/unset: Uses `DefaultAzureCredential` with the managed identity identified by `AZURE_CLIENT_ID`
+   - **Set via:** Bicep container app environment config
+
+3. **Managed Identity Identifier: `AZURE_CLIENT_ID` (Infrastructure Provisioning Time)**
+   - **When:** `azd up` sets this on the server container app (only when `useKeylessAuth=true`)
+   - **Purpose:** Identifies which managed identity `DefaultAzureCredential` should use when multiple identities exist on the host
+   - **Value:** The user-assigned managed identity's client ID
+   - **Usage:** `api/SearchClientFactory.cs` passes this to `DefaultAzureCredential.CreateAsync()` via `new ManagedIdentityClientId(clientId)`
+
+#### Azure AI Search Keys: Admin vs Query Keys
+
+Azure AI Search provides **two types of keys** for different security contexts:
+
+| Key Type | Purpose | Permissions | Scope | When to Use |
+|----------|---------|-------------|-------|------------|
+| **Admin Key** | Index and service management | Full: create/delete indexes, manage synonyms, configure analyzers, add/update/delete documents | All operations (data plane + admin) | Index creation, schema changes, bulk data loading (administrative) |
+| **Query Key** | Data queries only | Read-only: execute search queries, retrieve documents | Data-plane queries only | Client-facing search API, public search interfaces, query operations |
+
+**Best Practice:** Use separate keys for their intended purposes:
+- **Bulk-insert (index creation):** Use the **admin key** (required for `CreateOrUpdateIndexAsync`)
+- **Search API (queries):** Use a **query key** (principle of least privilege)
+
+**Current Implementation:** This solution uses the **admin key for both** bulk-insert and search queries when key auth is enabled. This is a **security anti-pattern** — the query-facing API has more permissions than necessary. To improve security:
+- Fetch the **query key** instead of the admin key in the `azure.yaml` postprovision hook (use `az search query-key list` and select the first key)
+- Pass it to the server container as `SEARCH_QUERY_KEY` instead of `SEARCH_API_KEY`
+- Update `api/SearchClientFactory.cs` to use `SEARCH_QUERY_KEY` for search operations
+
+> **How the credential is selected:** The search API (`api/SearchClientFactory.cs`) reads the `SEARCH_USE_KEY_AUTH` environment variable at runtime. When it is `true`, `AzureKeyCredential` is used with the injected key; otherwise `DefaultAzureCredential` is used (keyless default). The same logic applies to the `bulk-insert` seed hook. No code changes needed to switch modes.
 
 > [!NOTE]
 > **Why these deployment files**
