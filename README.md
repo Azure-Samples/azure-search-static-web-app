@@ -33,8 +33,6 @@ For local development of the API or client:
 
 ## Download sample repository
 
-1. On GitHub, fork the repository.
-
 1. In a terminal, use git to clone this repository to your local computer:
 
     ```bash
