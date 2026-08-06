@@ -6,7 +6,7 @@ This sample includes a C# bulk-insert app, a C# Azure Functions API, and a React
 
 | Component | Description |
 |---------|-------------|
-| bulk-insert app | Creates and loads the "goodbooks" index on Azure AI Search. It demonstrates index creation and batch mode indexing. Sample data is loaded from the [azure-search-sample-data](https://github.com/Azure-Samples/azure-search-sample-data/tree/main/good-books) repository.|
+| bulk-insert app | Creates and loads the "good-books" index on Azure AI Search. It demonstrates index creation and batch mode indexing. Sample data is loaded from the [azure-search-sample-data](https://github.com/Azure-Samples/azure-search-sample-data/tree/main/good-books) repository.|
 | client app | Provides the client code. The web front-end includes a search page with faceted navigation, a search bar for free form search and suggested queries, and tabbed page results. It's written in JavaScript, uses Node.js for the runtime, and uses React libraries for user interaction. |
 | api | Provides the Azure Functions app used by the client to send queries to the search index. |
 
