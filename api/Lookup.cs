@@ -1,5 +1,6 @@
 using Azure;
 using Azure.Core.Serialization;
+using Azure.Identity;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using Microsoft.Azure.Functions.Worker;
@@ -13,10 +14,6 @@ namespace WebSearch.Function
 {
     public class Lookup
     {
-        private static string searchApiKey = Environment.GetEnvironmentVariable("SearchApiKey", EnvironmentVariableTarget.Process);
-        private static string searchServiceName = Environment.GetEnvironmentVariable("SearchServiceName", EnvironmentVariableTarget.Process);
-        private static string searchIndexName = Environment.GetEnvironmentVariable("SearchIndexName", EnvironmentVariableTarget.Process) ?? "good-books";
-
         private readonly ILogger<Lookup> _logger;
 
         public Lookup(ILogger<Lookup> logger)
@@ -35,15 +32,8 @@ namespace WebSearch.Function
             var query = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
             string documentId = query["id"].ToString();
 
-            // Azure AI Search 
-            Uri serviceEndpoint = new($"https://{searchServiceName}.search.windows.net/");
-
-            SearchClient searchClient = new(
-
-                serviceEndpoint,
-                searchIndexName,
-                new AzureKeyCredential(searchApiKey)
-            );
+            // Azure AI Search (managed identity by default; API key only when SEARCH_USE_KEY_AUTH=true)
+            SearchClient searchClient = SearchClientFactory.CreateSearchClient();
 
             var getDocumentResponse = await searchClient.GetDocumentAsync<SearchDocument>(documentId);
 

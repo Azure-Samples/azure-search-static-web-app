@@ -1,0 +1,14 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "SEARCH_USE_KEY_AUTH": "true",
+    "SearchApiKey": "",
+    "SearchServiceName": "",
+    "SearchIndexName": "good-books"
+  },
+  "Host": {
+    "CORS": "*"
+  }
+}
