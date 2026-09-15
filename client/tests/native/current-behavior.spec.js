@@ -10,28 +10,28 @@ test.describe('native application behavior', () => {
   });
 
   test('renders the existing direct search route', async ({ page }) => {
-    await page.goto('/search?q=dogs');
-    await expect(page).toHaveURL(/\/search\?q=dogs$/);
-    await expect(searchBox(page)).toHaveValue('dogs');
+    await page.goto('/search?q=dog');
+    await expect(page).toHaveURL(/\/search\?q=dog$/);
+    await expect(searchBox(page)).toHaveValue('dog');
   });
 
   test('native search results should render', async ({ page }) => {
     test.fail(true, 'Known native defect: successful API operations return HTTP 302.');
 
-    await page.goto('/search?q=dogs');
+    await page.goto('/search?q=dog');
     const response = await page.request.post(`${apiURL}/api/search`, {
-      data: { q: 'dogs', top: 8, skip: 0, filters: [] },
+      data: { q: 'dog', top: 8, skip: 0, filters: [] },
     });
     expect(response.status()).toBe(200);
-    await expect(page.locator('a[href="/details/9734"]')).toBeVisible();
+    await expect(page.locator('a[href="/details/7609"]')).toBeVisible();
   });
 
   test('native suggestions should render', async ({ page }) => {
     test.fail(true, 'Known native defect: successful API operations return HTTP 302.');
 
     await page.goto('/');
-    await searchBox(page).fill('dogs');
-    await expect(page.getByText('Mad Dogs', { exact: true })).toBeVisible();
+    await searchBox(page).fill('dog');
+    await expect(page.getByText('Dog on It', { exact: true })).toBeVisible();
   });
 
   test('mobile navigation should open with its existing toggle', async ({ page }) => {

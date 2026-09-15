@@ -35,7 +35,7 @@ test.describe('test-only accessibility and responsive diagnostics', () => {
         'Known native defect: search results overflow a 320px viewport.',
       );
       await page.setViewportSize({ width, height: 900 });
-      await page.goto('/search?q=dogs');
+      await page.goto('/search?q=dog');
       await expect(page.locator('a[href="/details/9734"]')).toBeVisible();
 
       const dimensions = await page.evaluate(() => ({

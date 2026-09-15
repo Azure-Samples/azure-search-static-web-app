@@ -30,7 +30,7 @@ test.describe('approved design-system theme surfaces', () => {
       contentType: 'application/json',
       body: JSON.stringify(searchPayload([bookDocument('9734', 'Mad Dogs')])),
     }));
-    await page.goto('/search?q=dogs');
+    await page.goto('/search?q=dog');
     const result = page.locator('a[href="/details/9734"]');
     await expect(result).toBeVisible();
     await expect(result).toHaveCSS('color', 'rgb(0, 120, 212)');

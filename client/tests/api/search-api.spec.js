@@ -22,7 +22,7 @@ test.describe('Azure AI Search API contract', () => {
     test.fail(true, 'Known native defect: successful API operations return HTTP 302.');
 
     const response = await post(request, '/api/search', {
-      q: 'dogs',
+      q: 'dog',
       top: 8,
       skip: 0,
       filters: [],
@@ -72,20 +72,19 @@ test.describe('Azure AI Search API contract', () => {
     });
   }
 
-  test('returns search results and facets for dogs', async ({ request }) => {
+  test('returns search results and facets for dog', async ({ request }) => {
     const response = await post(request, '/api/search', {
-      q: 'dogs',
+      q: 'dog',
       top: 8,
       skip: 0,
       filters: [],
     });
     const body = await expectNativeJson(response);
 
-    expect(body.count).toBe(7);
+    expect(body.count).toBe(27);
     expect(body.results).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ document: expect.objectContaining({ id: '9734' }) }),
-        expect.objectContaining({ document: expect.objectContaining({ id: '9957' }) }),
+        expect.objectContaining({ document: expect.objectContaining({ id: '7609' }) }),
       ]),
     );
     expect(body.facets).toMatchObject({
@@ -97,17 +96,17 @@ test.describe('Azure AI Search API contract', () => {
   test('applies author and language facets independently and together', async ({ request }) => {
     const cases = [
       {
-        filters: [{ field: 'authors', value: 'Robert Muchamore' }],
+        filters: [{ field: 'authors', value: 'Spencer Quinn' }],
         expectedCount: 1,
       },
       {
-        filters: [{ field: 'language_code', value: 'eng' }],
-        expectedCount: 4,
+        filters: [{ field: 'language_code', value: 'en-US' }],
+        expectedCount: 9,
       },
       {
         filters: [
-          { field: 'authors', value: 'Robert Muchamore' },
-          { field: 'language_code', value: 'eng' },
+          { field: 'authors', value: 'Spencer Quinn' },
+          { field: 'language_code', value: 'en-US' },
         ],
         expectedCount: 1,
       },
@@ -115,14 +114,14 @@ test.describe('Azure AI Search API contract', () => {
 
     for (const fixture of cases) {
       const response = await post(request, '/api/search', {
-        q: 'dogs',
+        q: 'dog',
         top: 8,
         skip: 0,
         filters: fixture.filters,
       });
       const body = await expectNativeJson(response);
       expect(body.count).toBe(fixture.expectedCount);
-      expect(body.results.map(result => result.document.id)).toContain('9734');
+      expect(body.results.map(result => result.document.id)).toContain('7609');
 
       const authorFacets = Object.fromEntries(
         body.facets.authors.map(facet => [facet.value, facet.count]),
@@ -130,8 +129,8 @@ test.describe('Azure AI Search API contract', () => {
       const languageFacets = Object.fromEntries(
         body.facets.language_code.map(facet => [facet.value, facet.count]),
       );
-      expect(authorFacets['Robert Muchamore']).toBe(1);
-      expect(languageFacets.eng).toBeGreaterThanOrEqual(1);
+      expect(authorFacets['Spencer Quinn']).toBe(1);
+      expect(languageFacets['en-US']).toBeGreaterThanOrEqual(1);
     }
   });
 
@@ -194,7 +193,7 @@ test.describe('Azure AI Search API contract', () => {
   test('malformed search should return a client error', async ({ request }) => {
     test.fail(true, 'Known native defect: malformed search input is not validated as HTTP 400.');
     const search = await post(request, '/api/search', {
-      q: 'dogs',
+      q: 'dog',
       top: 0,
       skip: -1,
       filters: [],

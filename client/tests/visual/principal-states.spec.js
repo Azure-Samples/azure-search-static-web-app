@@ -106,15 +106,15 @@ test.describe('reviewed visual baselines', () => {
   test('suggestions', async ({ page }) => {
     await page.goto('/');
     const suggestion = page.waitForResponse(response =>
-      isApiResponse(response, 'suggest', { q: 'dogs', top: 5, suggester: 'sg' }));
-    await searchBox(page).fill('dogs');
+      isApiResponse(response, 'suggest', { q: 'dog', top: 5, suggester: 'sg' }));
+    await searchBox(page).fill('dog');
     await suggestion;
     await expect(page.getByText('Mad Dogs', { exact: true })).toBeVisible();
     await expectStateSnapshot(page, 'suggestions-desktop.png');
   });
 
   test('results, combined facets, and pagination', async ({ page }) => {
-    await page.goto('/search?q=dogs');
+    await page.goto('/search?q=dog');
     await expect(page.getByText('Showing 1-7 of 7 results for')).toBeVisible();
     await expectStateSnapshot(page, 'results-desktop.png', {
       mask: [page.locator('main img')],

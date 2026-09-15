@@ -19,7 +19,7 @@ test.describe('test-only controlled response diagnostics', () => {
     await page.route('**/api/search', route =>
       fulfillJson(route, searchPayload([bookDocument('9734', 'Mad Dogs')])));
 
-    await page.goto('/search?q=dogs');
+    await page.goto('/search?q=dog');
     await expect(page.getByText('Showing 1-1 of 1 results for')).toBeVisible();
     await expect(page.locator('a[href="/details/9734"]')).toBeVisible();
   });
@@ -31,7 +31,7 @@ test.describe('test-only controlled response diagnostics', () => {
       }));
 
     await page.goto('/');
-    await searchBox(page).fill('dogs');
+    await searchBox(page).fill('dog');
     await expect(page.getByText('Mad Dogs', { exact: true })).toBeVisible();
   });
 
@@ -54,7 +54,7 @@ test.describe('test-only controlled response diagnostics', () => {
       await fulfillJson(route, searchPayload([bookDocument(body.q, body.q)]));
     });
 
-    await page.goto('/search?q=dogs');
+    await page.goto('/search?q=dog');
     await expect(resultLinks(page)).toHaveCount(1);
     await searchBox(page).fill('cats');
     await page.getByRole('button', { name: 'Search' }).click();
