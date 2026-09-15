@@ -30,30 +30,12 @@ namespace WebSearch.Function
 
             // Get Document Id
             var query = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
-            string? documentId = query["id"];
-            if (string.IsNullOrWhiteSpace(documentId))
-            {
-                return await ApiResponses.WriteErrorAsync(
-                    req,
-                    HttpStatusCode.BadRequest,
-                    "The id query parameter is required.");
-            }
+            string documentId = query["id"].ToString();
 
             // Azure AI Search (managed identity by default; API key only when SEARCH_USE_KEY_AUTH=true)
             SearchClient searchClient = SearchClientFactory.CreateSearchClient();
 
-            Response<SearchDocument> getDocumentResponse;
-            try
-            {
-                getDocumentResponse = await searchClient.GetDocumentAsync<SearchDocument>(documentId);
-            }
-            catch (RequestFailedException exception) when (exception.Status == (int)HttpStatusCode.NotFound)
-            {
-                return await ApiResponses.WriteErrorAsync(
-                    req,
-                    HttpStatusCode.NotFound,
-                    $"Document '{documentId}' was not found.");
-            }
+            var getDocumentResponse = await searchClient.GetDocumentAsync<SearchDocument>(documentId);
 
             // Data to return 
             var output = new LookupOutput
@@ -61,7 +43,7 @@ namespace WebSearch.Function
                 Document = getDocumentResponse.Value
             };
 
-            var response = req.CreateResponse(HttpStatusCode.OK);
+            var response = req.CreateResponse(HttpStatusCode.Found);
 
             // Serialize data
             var serializer = new JsonObjectSerializer(

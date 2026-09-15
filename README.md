@@ -79,6 +79,8 @@ Push-Location .\client
 $env:PLAYWRIGHT_API_URL = 'http://127.0.0.1:7071'
 $env:PLAYWRIGHT_CLIENT_URL = 'http://127.0.0.1:3000'
 npm run test:api
+npm run test:native
+npm run test:diagnostic
 npm run test:e2e
 npm run test:visual
 npm run test:structure
@@ -88,20 +90,32 @@ Pop-Location
 
 The API suite first verifies the canonical 10,000-document dataset and stable
 book ID 9734. If that preflight fails, use the intended seeded environment
-rather than weakening the fixture. The native browser suite doesn't intercept,
-mock, or rewrite API responses. Controlled-network tests live in separate spec
-files and cover request counts, delayed out-of-order responses, loading,
-failure, missing-image, and long-content states without changing the live API
-contract tests.
+rather than weakening the fixture. It records the existing HTTP 302 success
+response as a known expected failure against the HTTP 200 contract while still
+validating the returned search data.
 
-The browser coverage includes semantic-role interactions, keyboard operation,
-axe checks, and overflow checks at 320, 390, 768, and 1440 pixels. The API
-contract suite remains a separate Playwright project so a UI fixture can't
-hide a backend regression.
+The `native` browser project never intercepts, mocks, or rewrites API
+responses. It passes currently working page-shell behavior and marks known
+native defects as expected failures. In particular, search results and
+suggestions don't render because browser fetch can't consume the API's HTTP 302
+responses, and the existing Bootstrap mobile toggle doesn't open.
+
+The `diagnostic` and `visual-diagnostic` projects are explicitly test-only.
+They intercept API calls with deterministic HTTP 200 fixtures to isolate
+client rendering and coordination behavior. Their passing results are not
+evidence that the native API/browser path passes. Run native and diagnostic
+projects separately when reporting results:
+
+```powershell
+npm run test:native
+npm run test:diagnostic
+npm run test:visual
+```
 
 ### Visual and design-system validation
 
-`npm run test:visual` compares the principal current-UI states with the
+`npm run test:visual` uses deterministic test-only HTTP 200 interception and
+compares the principal current-UI states with the
 explicitly reviewed PNG files under
 `client/tests/visual/__screenshots__/current/`. Update them only after
 inspecting every changed image:
@@ -114,7 +128,7 @@ Pop-Location
 ```
 
 The design-system integration uses an intentionally separate baseline and
-structure mode:
+structure mode. These checks do not modify application source:
 
 ```powershell
 Push-Location .\client

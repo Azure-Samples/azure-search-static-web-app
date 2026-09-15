@@ -29,6 +29,8 @@ function walk(directory) {
 
 const requiredScripts = [
   'test:api',
+  'test:native',
+  'test:diagnostic',
   'test:e2e',
   'test:visual',
   'test:structure',

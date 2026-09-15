@@ -5,7 +5,7 @@ export const apiURL = process.env.PLAYWRIGHT_API_URL || 'http://127.0.0.1:7071';
 export const searchBox = page =>
   page.getByRole('combobox', { name: 'What are you looking for?' });
 export const resultLinks = page =>
-  page.getByRole('link', { name: /^View details for / });
+  page.locator('a[href^="/details/"]');
 
 export function bookDocument(id, title, overrides = {}) {
   return {
@@ -36,7 +36,7 @@ export function searchPayload(documents, overrides = {}) {
 }
 
 export function isApiResponse(response, operation, body = {}) {
-  if (response.url() !== `${apiURL}/api/${operation}`) {
+  if (new URL(response.url()).pathname !== `/api/${operation}`) {
     return false;
   }
 
@@ -74,8 +74,12 @@ export async function submitSearch(page, query, keyboard = false) {
 
 export async function expandFacet(page, name) {
   const button = page.getByRole('button', { name });
-  if (await button.getAttribute('aria-expanded') === 'false') {
-    await button.click();
+  if (await button.count()) {
+    if (await button.getAttribute('aria-expanded') === 'false') {
+      await button.click();
+    }
+  } else {
+    await page.getByText(name, { exact: true }).first().click();
   }
 }
 

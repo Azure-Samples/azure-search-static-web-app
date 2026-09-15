@@ -1,10 +1,10 @@
 .header {
-    background-color: #0078d4;
+    background-color: #0078d7;
     color: #eee;
 }
 
 .nav-bar-search {
-  padding-left: 10px;
+  margin-left: 10px;;
 }
 
 .header .nav-link {

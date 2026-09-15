@@ -22,9 +22,7 @@ export default function Facets(props) {
     }
 
     function removeFilter(filter) {      
-        const newFilters = props.filters.filter(
-            item => item.field !== filter.field || item.value !== filter.value
-        );
+        const newFilters = props.filters.filter((item) => item.value !== filter.value);
         props.setFilters(newFilters);
     }
 
@@ -48,11 +46,9 @@ export default function Facets(props) {
     const filters = props.filters.map((filter, index) => {
         return (
             <li key={index}>
-                <Chip
-                    label={`${mapFacetName(filter.field)}: ${filter.value}`}
+                <Chip 
+                    label={`${mapFacetName(filter.field)}: ${filter.value}`} 
                     onDelete={() => removeFilter(filter)}
-                    onClick={() => removeFilter(filter)}
-                    aria-label={`Remove ${mapFacetName(filter.field)}: ${filter.value} filter`}
                     className="chip"
                 />
             </li>

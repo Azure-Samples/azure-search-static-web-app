@@ -28,16 +28,6 @@ namespace WebSearch.Function
             // Get Document Id
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var data = JsonSerializer.Deserialize<RequestBodySuggest>(requestBody);
-            if (data is null ||
-                string.IsNullOrWhiteSpace(data.SearchText) ||
-                string.IsNullOrWhiteSpace(data.SuggesterName) ||
-                data.Size is < 1 or > 100)
-            {
-                return await ApiResponses.WriteErrorAsync(
-                    req,
-                    HttpStatusCode.BadRequest,
-                    "The request must include q, suggester, and top between 1 and 100.");
-            }
 
             // Azure AI Search (managed identity by default; API key only when SEARCH_USE_KEY_AUTH=true)
             SearchClient searchClient = SearchClientFactory.CreateSearchClient();
@@ -56,7 +46,7 @@ namespace WebSearch.Function
                 ["suggestions"] = suggesterResponse.Value.Results.ToList()
             };
 
-            var response = req.CreateResponse(HttpStatusCode.OK);
+            var response = req.CreateResponse(HttpStatusCode.Found);
 
             // Serialize data
             var serializer = new JsonObjectSerializer(

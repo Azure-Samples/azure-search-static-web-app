@@ -27,7 +27,23 @@ export default defineConfig({
       },
     },
     {
-      name: 'e2e',
+      name: 'native',
+      testDir: './tests/native',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: clientURL,
+      },
+    },
+    {
+      name: 'diagnostic',
+      testDir: './tests/diagnostic',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: clientURL,
+      },
+    },
+    {
+      name: 'design-theme',
       testDir: './tests/e2e',
       use: {
         ...devices['Desktop Chrome'],
@@ -35,7 +51,7 @@ export default defineConfig({
       },
     },
     {
-      name: 'visual',
+      name: 'visual-diagnostic',
       testDir: './tests/visual',
       use: {
         ...devices['Desktop Chrome'],

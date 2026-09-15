@@ -1,5 +1,6 @@
 using Azure;
 using Azure.Core.Serialization;
+using Azure.Identity;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using Microsoft.Azure.Functions.Worker;
@@ -7,6 +8,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using WebSearch.Models;
 using SearchFilter = WebSearch.Models.SearchFilter;
 
@@ -28,16 +30,6 @@ namespace WebSearch.Function
         {
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var data = JsonSerializer.Deserialize<RequestBodySearch>(requestBody);
-            if (data is null || data.Size is < 1 or > 100 || data.Skip < 0)
-            {
-                return await ApiResponses.WriteErrorAsync(
-                    req,
-                    HttpStatusCode.BadRequest,
-                    "The request must include top between 1 and 100 and a nonnegative skip value.");
-            }
-
-            data.SearchText = string.IsNullOrWhiteSpace(data.SearchText) ? "*" : data.SearchText;
-            data.Filters ??= [];
 
             // Azure AI Search (managed identity by default; API key only when SEARCH_USE_KEY_AUTH=true)
             SearchClient searchClient = SearchClientFactory.CreateSearchClient();
@@ -72,7 +64,7 @@ namespace WebSearch.Function
                 Facets = facetOutput
             };
             
-            var response = req.CreateResponse(HttpStatusCode.OK);
+            var response = req.CreateResponse(HttpStatusCode.Found);
 
             // Serialize data
             var serializer = new JsonObjectSerializer(

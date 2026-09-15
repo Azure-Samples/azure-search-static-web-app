@@ -6,55 +6,30 @@ import './SearchBar.css';
 export default function SearchBar({ postSearchHandler, query, width }) {
   const [q, setQ] = useState(() => query || '');
   const [suggestions, setSuggestions] = useState([]);
-  const [suggestionsEnabled, setSuggestionsEnabled] = useState(false);
 
   const search = (value) => {
-    setSuggestions([]);
-    setSuggestionsEnabled(false);
     postSearchHandler(value);
   };
 
   useEffect(() => {
-    setQ(query || '');
-    setSuggestions([]);
-    setSuggestionsEnabled(false);
-  }, [query]);
+    if (q) {
 
-  useEffect(() => {
-    if (!q || !suggestionsEnabled) {
-      setSuggestions([]);
-      return undefined;
-    }
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => {
       const body = { q, top: 5, suggester: 'sg' };
-      fetchInstance('/api/suggest', {
-        body,
-        method: 'POST',
-        signal: controller.signal,
+
+      fetchInstance('/api/suggest', { body, method: 'POST' })
+      .then(response => {
+        setSuggestions(response.suggestions.map(s => s.text));
       })
-        .then(response => {
-          setSuggestions(response.suggestions.map(suggestion => suggestion.text));
-        })
-        .catch(error => {
-          if (error.name !== 'AbortError') {
-            console.error(error);
-            setSuggestions([]);
-          }
-        });
-    }, 250);
-
-    return () => {
-      clearTimeout(timeout);
-      controller.abort();
-    };
-  }, [q, suggestionsEnabled]);
+      .catch(error => {
+        console.log(error);
+        setSuggestions([]);
+      });
+    }
+  }, [q]);
 
 
-  const onInputChangeHandler = (event, value, reason) => {
+  const onInputChangeHandler = (event, value) => {
     setQ(value);
-    setSuggestionsEnabled(reason === 'input');
   };
 
 
@@ -79,18 +54,19 @@ export default function SearchBar({ postSearchHandler, query, width }) {
         <Autocomplete
           className="autocomplete"
           freeSolo
-          inputValue={q}
+          value={q}
           options={suggestions}
           onInputChange={onInputChangeHandler}
           onChange={onChangeHandler}
           disableClearable
-          open={suggestions.length > 0}
           renderInput={(params) => (
             <TextField
               {...params}
               id="search-box"
               className="form-control rounded-0"
               placeholder="What are you looking for?"
+              onBlur={() => setSuggestions([])}
+              onClick={() => setSuggestions([])}
               onKeyDown={onEnterButton}
             />
           )}

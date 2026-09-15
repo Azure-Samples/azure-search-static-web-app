@@ -36,22 +36,19 @@ export default function BasicTabs() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const controller = new AbortController();
     setIsLoading(true);
-    fetchInstance('/api/lookup', { query: { id }, signal: controller.signal })
+    fetchInstance('/api/lookup', { query: { id } })
       .then(response => {
+        console.log(JSON.stringify(response))
         const doc = response.document;
         setDocument(doc);
         setIsLoading(false);
       })
       .catch(error => {
-        if (error.name !== 'AbortError') {
-          console.error(error);
-          setIsLoading(false);
-        }
+        console.log(error);
+        setIsLoading(false);
       });
 
-    return () => controller.abort();
   }, [id]);
 
   const handleChange = (event, newValue) => {
@@ -61,24 +58,24 @@ export default function BasicTabs() {
 
   if (isLoading || !id || Object.keys(document).length === 0) {
     return (
-      <main className="loading-container" aria-live="polite">
+      <div className="loading-container">
         <CircularProgress />
         <p>Loading...</p>
-      </main>
+      </div>
     );
   }
 
   return (
-    <Box component="main" className="details-box-parent">
+    <Box className="details-box-parent">
       <Box className="details-tab-box-header">
         <Tabs value={value} onChange={handleChange} aria-label="book-details-tabs">
-          <Tab label="Result" id="simple-tab-0" aria-controls="simple-tabpanel-0" />
-          <Tab label="Raw Data" id="simple-tab-1" aria-controls="simple-tabpanel-1" />
+          <Tab label="Result" />
+          <Tab label="Raw Data" />
         </Tabs>
       </Box>
       <CustomTabPanel value={value} index={0} className="tab-panel box-content">
         <div className="card-body">
-          <h5 className="card-title">{document.original_title || document.title || '<NO TITLE>'}</h5>
+          <h5 className="card-title">{document.original_title}</h5>
           <img className="image" src={document.image_url} alt="Book cover"></img>
           <p className="card-text">{document.authors?.join('; ')} - {document.original_publication_year}</p>
           <p className="card-text">ISBN {document.isbn}</p>

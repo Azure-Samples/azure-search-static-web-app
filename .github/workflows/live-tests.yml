@@ -111,8 +111,11 @@ jobs:
       - name: Run API contracts
         run: npm run test:api --prefix client
 
-      - name: Run native and controlled-state browser E2E
-        run: npm run test:e2e --prefix client
+      - name: Run native browser behavior
+        run: npm run test:native --prefix client
+
+      - name: Run test-only controlled-response diagnostics
+        run: npm run test:diagnostic --prefix client
 
       - name: Run reviewed visual baselines
         run: npm run test:visual --prefix client
