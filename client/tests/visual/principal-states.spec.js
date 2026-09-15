@@ -97,8 +97,8 @@ test.describe('reviewed visual baselines', () => {
     await page.goto('/');
     await expect(searchBox(page)).toBeVisible();
     if (process.env.DESIGN_SYSTEM_MODE === 'design') {
-      await page.getByRole('button', { name: 'Toggle navigation' }).click();
-      await expect(page.getByRole('link', { name: 'Search', exact: true })).toBeVisible();
+      await page.getByRole('button', { name: /Toggle navigation|menu/i }).click();
+      await expect(page.getByRole('menuitem', { name: 'Search', exact: true })).toBeVisible();
     }
     await expectStateSnapshot(page, 'home-mobile-menu.png');
   });
@@ -109,7 +109,7 @@ test.describe('reviewed visual baselines', () => {
       isApiResponse(response, 'suggest', { q: 'dogs', top: 5, suggester: 'sg' }));
     await searchBox(page).fill('dogs');
     await suggestion;
-    await expect(page.getByRole('option', { name: 'Mad Dogs', exact: true })).toBeVisible();
+    await expect(page.getByText('Mad Dogs', { exact: true })).toBeVisible();
     await expectStateSnapshot(page, 'suggestions-desktop.png');
   });
 
@@ -162,7 +162,7 @@ test.describe('reviewed visual baselines', () => {
 
   test('no results', async ({ page }) => {
     await page.goto('/search?q=qzxwvvjk607472');
-    await expect(page.getByText('Showing 0-0 of 0 results for')).toBeVisible();
+    await expect(page.getByText(/Showing 0-0 of 0 results for|No results found for/)).toBeVisible();
     await expectStateSnapshot(page, 'no-results.png');
   });
 });

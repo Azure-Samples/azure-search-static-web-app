@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import process from 'node:process';
+import { bookDocument, searchPayload } from '../helpers/ui.js';
 
 test.describe('approved design-system theme surfaces', () => {
   test.skip(
@@ -24,8 +25,13 @@ test.describe('approved design-system theme surfaces', () => {
   });
 
   test('uses the approved link color on result cards', async ({ page }) => {
+    await page.route('**/api/search', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(searchPayload([bookDocument('9734', 'Mad Dogs')])),
+    }));
     await page.goto('/search?q=dogs');
-    const result = page.getByRole('link', { name: /^View details for / }).first();
+    const result = page.locator('a[href="/details/9734"]');
     await expect(result).toBeVisible();
     await expect(result).toHaveCSS('color', 'rgb(0, 120, 212)');
   });
