@@ -34,6 +34,8 @@ venv.bak/
 npm-debug.log*
 node_modules
 static/
+client/playwright-report/
+client/test-results/
 
 # dotnet tools
 dotnet/.config
