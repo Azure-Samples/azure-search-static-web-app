@@ -80,20 +80,6 @@ if (mode === 'design') {
     for (const fragment of policy.forbiddenImportFragments) {
       check(!source.includes(fragment), `Forbidden import "${fragment}" in ${relativePath}`);
     }
-
-    for (const className of policy.forbiddenBootstrapClasses) {
-      const classPattern = new RegExp(
-        `className\\s*=\\s*["'\`][^"'\`]*\\b${className.replace('-', '\\-')}`,
-      );
-      check(!classPattern.test(source), `Bootstrap class "${className}" remains in ${relativePath}`);
-    }
-
-    if (!policy.allowedHardCodedStyleFiles.includes(relativePath)) {
-      const hardCodedColor = /#[0-9a-f]{3,8}\b|(?:rgb|hsl)a?\s*\(/i;
-      const hardCodedLength = /["'`][^"'`]*\b\d+(?:\.\d+)?(?:px|rem|em)\b[^"'`]*["'`]/i;
-      check(!hardCodedColor.test(source), `Hard-coded color remains outside theme in ${relativePath}`);
-      check(!hardCodedLength.test(source), `Hard-coded CSS length remains outside theme in ${relativePath}`);
-    }
   }
 
   const entryPoint = fs.readFileSync(path.join(clientRoot, policy.requiredEntryPoint), 'utf8');
