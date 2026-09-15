@@ -38,13 +38,14 @@ async function expectStateSnapshot(page, name, options = {}) {
 test.describe('reviewed visual baselines', () => {
   test('home desktop', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByRole('main')).toBeVisible();
+    await expect(searchBox(page)).toBeVisible();
     await expectStateSnapshot(page, 'home-desktop.png');
   });
 
   test('home mobile menu', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
+    await expect(searchBox(page)).toBeVisible();
     await page.getByRole('button', { name: 'Toggle navigation' }).click();
     await expect(page.getByRole('link', { name: 'Search', exact: true })).toBeVisible();
     await expectStateSnapshot(page, 'home-mobile-menu.png');

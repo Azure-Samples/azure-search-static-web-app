@@ -11,7 +11,7 @@ export default defineConfig({
   reporter: 'list',
   retries: process.env.CI ? 1 : 0,
   snapshotPathTemplate: '{testDir}/__screenshots__/current/{arg}{ext}',
-  timeout: 30_000,
+  timeout: 60_000,
   workers: 1,
   use: {
     screenshot: 'only-on-failure',

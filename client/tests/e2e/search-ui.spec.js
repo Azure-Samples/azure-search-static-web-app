@@ -111,7 +111,7 @@ test.describe('search UI', () => {
     await waitForSearch(
       page,
       { filters: [{ field: 'authors', value: 'Robert Muchamore' }] },
-      () => page.getByRole('checkbox', { name: 'Robert Muchamore (1)' }).check(),
+      () => page.getByRole('checkbox', { name: 'Robert Muchamore (1)' }).press('Space'),
     );
     await expect(page.getByRole('button', {
       name: 'Remove Authors: Robert Muchamore filter',
@@ -127,7 +127,7 @@ test.describe('search UI', () => {
           { field: 'language_code', value: 'eng' },
         ],
       },
-      () => page.getByRole('checkbox', { name: 'eng (1)' }).check(),
+      () => page.getByRole('checkbox', { name: 'eng (1)' }).press('Space'),
     );
     await expect(page.getByRole('button', {
       name: 'Remove Language code: eng filter',
@@ -146,7 +146,7 @@ test.describe('search UI', () => {
     await waitForSearch(
       page,
       { filters: [] },
-      () => page.getByRole('checkbox', { name: 'eng (4)' }).uncheck(),
+      () => page.getByRole('checkbox', { name: 'eng (4)' }).press('Space'),
     );
     await expect(page.getByRole('button', {
       name: 'Remove Language code: eng filter',

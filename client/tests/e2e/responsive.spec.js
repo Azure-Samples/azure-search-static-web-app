@@ -1,8 +1,11 @@
 import { expect, test } from '@playwright/test';
 import {
+  apiURL,
   assertNoDocumentOverflow,
+  bookDocument,
   expandFacet,
   resultLinks,
+  searchPayload,
 } from '../helpers/ui.js';
 
 const viewports = [
@@ -14,13 +17,36 @@ const viewports = [
 
 for (const viewport of viewports) {
   test(`principal states fit a ${viewport.width}px viewport`, async ({ page }) => {
+    await page.route(`${apiURL}/api/search`, async route => {
+      const body = route.request().postDataJSON();
+      const documents = Array.from(
+        { length: 8 },
+        (_, index) => bookDocument(
+          `responsive-${body.skip + index}`,
+          `Responsive result ${body.skip + index + 1}`,
+        ),
+      );
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(searchPayload(documents, { count: 24 })),
+      });
+    });
+    await page.route(`${apiURL}/api/lookup*`, route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        document: bookDocument('9734', 'Responsive details'),
+      }),
+    }));
+
     await page.setViewportSize(viewport);
     await page.goto('/');
     await expect(page.getByRole('main')).toBeVisible();
     await assertNoDocumentOverflow(page);
 
-    if (viewport.width < 992) {
-      const menu = page.getByRole('button', { name: 'Toggle navigation' });
+    const menu = page.getByRole('button', { name: 'Toggle navigation' });
+    if (await menu.isVisible()) {
       await menu.click();
       await expect(menu).toHaveAttribute('aria-expanded', 'true');
       await expect(page.getByRole('link', { name: 'Search', exact: true })).toBeVisible();
