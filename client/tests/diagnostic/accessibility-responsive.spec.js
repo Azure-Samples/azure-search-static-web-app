@@ -1,6 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import process from 'node:process';
 import { bookDocument, searchPayload } from '../helpers/ui.js';
 
 async function expectNoAxeViolations(page) {
@@ -23,10 +22,7 @@ test.describe('test-only accessibility and responsive diagnostics', () => {
   });
 
   test('home has no automated WCAG A/AA violations', async ({ page }) => {
-    test.fail(
-      process.env.DESIGN_SYSTEM_MODE !== 'design',
-      'Known native defect: current navigation colors miss WCAG AA contrast by 0.01.',
-    );
+    test.fail(true, 'Known native defect: navigation colors miss WCAG AA contrast by 0.01.');
     await page.goto('/');
     await expect(page.getByPlaceholder('What are you looking for?')).toBeVisible();
     await expectNoAxeViolations(page);
@@ -35,8 +31,8 @@ test.describe('test-only accessibility and responsive diagnostics', () => {
   for (const width of [320, 390, 768, 1440]) {
     test(`search results fit a ${width}px viewport`, async ({ page }) => {
       test.fail(
-        process.env.DESIGN_SYSTEM_MODE !== 'design' && width === 320,
-        'Known native defect: current search results overflow a 320px viewport.',
+        width === 320,
+        'Known native defect: search results overflow a 320px viewport.',
       );
       await page.setViewportSize({ width, height: 900 });
       await page.goto('/search?q=dogs');

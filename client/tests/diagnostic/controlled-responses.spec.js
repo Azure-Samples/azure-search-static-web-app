@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test';
-import process from 'node:process';
 import {
   bookDocument,
   resultLinks,
@@ -47,10 +46,7 @@ test.describe('test-only controlled response diagnostics', () => {
   });
 
   test('should issue one request per submitted query', async ({ page }) => {
-    test.fail(
-      process.env.DESIGN_SYSTEM_MODE !== 'design',
-      'Known native defect: current query state changes can issue duplicate requests.',
-    );
+    test.fail(true, 'Known native defect: query state changes can issue duplicate requests.');
     const requests = [];
     await page.route('**/api/search', async route => {
       const body = route.request().postDataJSON();
