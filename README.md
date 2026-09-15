@@ -31,6 +31,70 @@ For local development of the API or client:
 * [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
 * [Using .NET in Visual Studio Code](https://code.visualstudio.com/docs/languages/dotnet)
 
+## Run the live API and browser tests locally
+
+The Playwright suites run the API and browser layers separately against a
+provisioned Azure AI Search service. They don't create, update, or seed Azure
+resources. Before running them, verify that:
+
+* Azure AI Search is provisioned and the `good-books` index is seeded.
+* The signed-in Azure identity can read index data.
+* .NET 9, Azure Functions Core Tools, Node.js 18 or later, and npm are
+  installed.
+* `SearchServiceName` and `SearchIndexName` are set for the local API. Keep
+  credentials in the local Azure CLI, Azure Developer CLI, or environment
+  configuration; don't add them to source files.
+
+Install and build the dependencies:
+
+```powershell
+dotnet restore .\azure-search-static-web-app.sln
+dotnet build .\api\azure-search-function.csproj -c Release --no-restore
+Push-Location .\client
+npm ci
+npx playwright install chromium
+npm run build
+Pop-Location
+```
+
+Start the API and client in separate terminals:
+
+```powershell
+# Terminal 1
+$env:SearchServiceName = '<existing-search-service>'
+$env:SearchIndexName = 'good-books'
+Set-Location .\api
+func start --port 7071
+
+# Terminal 2
+$env:VITE_REACT_APP_BACKEND_URL = 'http://127.0.0.1:7071'
+Set-Location .\client
+npm run dev -- --port 3000
+```
+
+Run the suites with configurable URLs:
+
+```powershell
+Push-Location .\client
+$env:PLAYWRIGHT_API_URL = 'http://127.0.0.1:7071'
+$env:PLAYWRIGHT_CLIENT_URL = 'http://127.0.0.1:3000'
+npm run test:api
+npm run test:e2e
+npm run test:all
+Pop-Location
+```
+
+The API suite first verifies the canonical 10,000-document dataset and stable
+book ID 9734. If that preflight fails, use the intended seeded environment
+rather than weakening the fixture. The native browser suite doesn't intercept,
+mock, or rewrite API responses.
+
+The manual **Live Azure AI Search tests** workflow uses the protected
+`live-search-tests` environment. Configure its `AZURE_CLIENT_ID`,
+`AZURE_TENANT_ID`, and `AZURE_SUBSCRIPTION_ID` variables for federated Azure
+login, then provide the existing search service, index, client URL, and API URL
+when dispatching the workflow.
+
 ## Download sample repository
 
 1. In a terminal, use git to clone this repository to your local computer:

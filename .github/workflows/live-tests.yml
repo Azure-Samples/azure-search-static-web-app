@@ -1,0 +1,132 @@
+name: Live Azure AI Search tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      search_service_name:
+        description: Existing Azure AI Search service name
+        required: true
+        type: string
+      search_index_name:
+        default: good-books
+        description: Seeded search index name
+        required: true
+        type: string
+      api_url:
+        default: http://127.0.0.1:7071
+        description: URL Playwright uses for the local API
+        required: true
+        type: string
+      api_port:
+        default: "7071"
+        description: Port used to start the local API
+        required: true
+        type: string
+      client_url:
+        default: http://127.0.0.1:3000
+        description: URL Playwright uses for the local client
+        required: true
+        type: string
+      client_port:
+        default: "3000"
+        description: Port used to start the local client
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  live-tests:
+    name: API contracts and native UI E2E
+    environment: live-search-tests
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_API_URL: ${{ inputs.api_url }}
+      PLAYWRIGHT_CLIENT_URL: ${{ inputs.client_url }}
+      SearchIndexName: ${{ inputs.search_index_name }}
+      SearchServiceName: ${{ inputs.search_service_name }}
+      VITE_REACT_APP_BACKEND_URL: ${{ inputs.api_url }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          dotnet-version: 9.0.x
+
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          cache: npm
+          cache-dependency-path: client/package-lock.json
+          node-version: 20
+
+      - name: Sign in to Azure
+        uses: Azure/login@8216e11d8cd9b42fe925c852af8e76311ff067ac # v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+
+      - name: Install dependencies
+        run: |
+          npm install --global azure-functions-core-tools@4 --unsafe-perm true
+          npm ci --prefix client
+          cd client
+          npx playwright install --with-deps chromium
+          cd ..
+          dotnet restore azure-search-static-web-app.sln
+
+      - name: Build API and client
+        run: |
+          dotnet build api/azure-search-function.csproj -c Release --no-restore
+          npm run build --prefix client
+
+      - name: Start local API and client
+        run: |
+          (
+            cd api
+            func start --port "${{ inputs.api_port }}" --cors "${{ inputs.client_url }}"
+          ) > api.log 2>&1 &
+          echo "$!" > api.pid
+          npm run dev --prefix client -- --port "${{ inputs.client_port }}" \
+            > client.log 2>&1 &
+          echo "$!" > client.pid
+          for url in "${{ inputs.api_url }}/api/lookup?id=9734" "${{ inputs.client_url }}"; do
+            for attempt in {1..60}; do
+              if curl --fail --silent --show-error "$url" > /dev/null; then
+                break
+              fi
+              if [ "$attempt" -eq 60 ]; then
+                echo "::error::Service did not become ready: $url"
+                exit 1
+              fi
+              sleep 2
+            done
+          done
+
+      - name: Run API contracts
+        run: npm run test:api --prefix client
+
+      - name: Run native browser E2E
+        run: npm run test:e2e --prefix client
+
+      - name: Stop local processes
+        if: always()
+        run: |
+          for pid_file in client.pid api.pid; do
+            if [ -f "$pid_file" ]; then
+              kill "$(cat "$pid_file")" 2>/dev/null || true
+            fi
+          done
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: live-test-diagnostics
+          path: |
+            api.log
+            client.log
+            client/test-results
+          retention-days: 7
