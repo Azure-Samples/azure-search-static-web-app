@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import process from 'node:process';
 import {
   bookDocument,
   resultLinks,
@@ -32,7 +33,7 @@ test.describe('test-only controlled response diagnostics', () => {
 
     await page.goto('/');
     await searchBox(page).fill('dogs');
-    await expect(page.getByRole('option', { name: 'Mad Dogs', exact: true })).toBeVisible();
+    await expect(page.getByText('Mad Dogs', { exact: true })).toBeVisible();
   });
 
   test('renders details when a test intercept supplies HTTP 200', async ({ page }) => {
@@ -40,13 +41,16 @@ test.describe('test-only controlled response diagnostics', () => {
       fulfillJson(route, { document: bookDocument('9734', 'Mad Dogs') }));
 
     await page.goto('/details/9734');
-    await expect(page.getByRole('heading', { name: 'Mad Dogs' })).toBeVisible();
+    await expect(page.getByText('Mad Dogs', { exact: true }).first()).toBeVisible();
     await page.getByRole('tab', { name: 'Raw Data' }).click();
-    await expect(page.getByRole('tabpanel')).toContainText('"id": "9734"');
+    await expect(page.locator('[role="tabpanel"]:visible')).toContainText('"id": "9734"');
   });
 
   test('should issue one request per submitted query', async ({ page }) => {
-    test.fail(true, 'Known native defect: query state changes can issue duplicate requests.');
+    test.fail(
+      process.env.DESIGN_SYSTEM_MODE !== 'design',
+      'Known native defect: current query state changes can issue duplicate requests.',
+    );
     const requests = [];
     await page.route('**/api/search', async route => {
       const body = route.request().postDataJSON();

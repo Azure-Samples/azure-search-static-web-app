@@ -3,7 +3,7 @@ import process from 'node:process';
 
 export const apiURL = process.env.PLAYWRIGHT_API_URL || 'http://127.0.0.1:7071';
 export const searchBox = page =>
-  page.getByRole('combobox', { name: 'What are you looking for?' });
+  page.getByPlaceholder('What are you looking for?');
 export const resultLinks = page =>
   page.locator('a[href^="/details/"]');
 

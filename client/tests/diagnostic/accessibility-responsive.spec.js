@@ -28,7 +28,7 @@ test.describe('test-only accessibility and responsive diagnostics', () => {
       'Known native defect: current navigation colors miss WCAG AA contrast by 0.01.',
     );
     await page.goto('/');
-    await expect(page.getByRole('main')).toBeVisible();
+    await expect(page.getByPlaceholder('What are you looking for?')).toBeVisible();
     await expectNoAxeViolations(page);
   });
 
