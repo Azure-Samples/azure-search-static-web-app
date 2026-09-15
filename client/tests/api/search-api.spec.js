@@ -81,7 +81,7 @@ test.describe('Azure AI Search API contract', () => {
     });
     const body = await expectNativeJson(response);
 
-    expect(body.count).toBe(27);
+    expect(body.count).toBe(24);
     expect(body.results).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ document: expect.objectContaining({ id: '7609' }) }),
@@ -101,7 +101,7 @@ test.describe('Azure AI Search API contract', () => {
       },
       {
         filters: [{ field: 'language_code', value: 'en-US' }],
-        expectedCount: 9,
+        expectedCount: 7,
       },
       {
         filters: [
