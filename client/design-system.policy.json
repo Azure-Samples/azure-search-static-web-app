@@ -1,0 +1,46 @@
+{
+  "themeFile": "src/theme.ts",
+  "requiredEntryPoint": "src/main.tsx",
+  "forbiddenDependencies": [
+    "bootstrap",
+    "jquery",
+    "popper.js",
+    "@popperjs/core"
+  ],
+  "forbiddenImportFragments": [
+    "bootstrap/",
+    "from 'bootstrap'",
+    "from \"bootstrap\"",
+    "from 'jquery'",
+    "from \"jquery\"",
+    "from 'popper.js'",
+    "from \"popper.js\""
+  ],
+  "forbiddenBootstrapClasses": [
+    "container-fluid",
+    "navbar",
+    "navbar-expand",
+    "navbar-brand",
+    "navbar-toggler",
+    "navbar-collapse",
+    "navbar-nav",
+    "nav-item",
+    "nav-link",
+    "row-cols",
+    "col-md",
+    "card-body",
+    "card-img",
+    "page-item",
+    "page-link",
+    "pagination"
+  ],
+  "allowedHardCodedStyleFiles": [
+    "src/theme.ts"
+  ],
+  "allowedHardCodedStyleValues": [
+    "transparent",
+    "currentColor",
+    "inherit"
+  ],
+  "hardCodedStylePolicy": "Application colors, spacing, breakpoints, typography, borders, radii, and shadows must resolve from the MUI theme. Raw visual constants belong in src/theme.ts. Components may use only transparent, currentColor, or inherit directly."
+}

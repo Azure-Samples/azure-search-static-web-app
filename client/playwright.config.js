@@ -10,6 +10,7 @@ export default defineConfig({
   outputDir: 'test-results',
   reporter: 'list',
   retries: process.env.CI ? 1 : 0,
+  snapshotPathTemplate: '{testDir}/__screenshots__/current/{arg}{ext}',
   timeout: 30_000,
   workers: 1,
   use: {
@@ -28,6 +29,14 @@ export default defineConfig({
     {
       name: 'e2e',
       testDir: './tests/e2e',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: clientURL,
+      },
+    },
+    {
+      name: 'visual',
+      testDir: './tests/visual',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: clientURL,

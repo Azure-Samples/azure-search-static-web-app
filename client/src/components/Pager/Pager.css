@@ -6,3 +6,10 @@
     margin: auto;
     max-width: fit-content;
 }
+
+@media (max-width: 390px) {
+    .pager .page-link {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}

@@ -1,5 +1,6 @@
 .home-search {
-    margin: 5em auto;
+    margin: 5em 0;
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center; /* Center child elements horizontally */

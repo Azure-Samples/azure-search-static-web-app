@@ -82,6 +82,9 @@ jobs:
           dotnet build api/azure-search-function.csproj -c Release --no-restore
           npm run build --prefix client
 
+      - name: Validate test and current UI structure
+        run: npm run test:structure --prefix client
+
       - name: Start local API and client
         run: |
           (
@@ -108,8 +111,11 @@ jobs:
       - name: Run API contracts
         run: npm run test:api --prefix client
 
-      - name: Run native browser E2E
+      - name: Run native and controlled-state browser E2E
         run: npm run test:e2e --prefix client
+
+      - name: Run reviewed visual baselines
+        run: npm run test:visual --prefix client
 
       - name: Stop local processes
         if: always()

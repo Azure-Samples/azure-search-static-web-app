@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import fetchInstance from '../../url-fetch';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useLocation, useNavigate } from "react-router-dom";
@@ -23,6 +23,7 @@ export default function Search() {
   const [filters, setFilters] = useState([]);
   const [facets, setFacets] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const lastRequestKey = useRef();
 
   const skip = (currentPage - 1) * top;
   const resultsPerPage = top;
@@ -41,6 +42,11 @@ export default function Search() {
       skip,
       filters,
     };
+    const requestKey = JSON.stringify(body);
+    if (lastRequestKey.current === requestKey) {
+      return undefined;
+    }
+    lastRequestKey.current = requestKey;
 
     fetchInstance('/api/search', {
       body,

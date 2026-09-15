@@ -77,6 +77,7 @@
     padding-top: 25px;
     padding-left: 150px;
     padding-right: 150px;
+    min-width: 0;
 }
 .details-tab-box-header {
     border-bottom: 1px solid;
@@ -84,5 +85,24 @@
 }
 .details-custom-tab-panel-json-div {
     text-align: left;
+    align-items: stretch;
 }
 
+.details-custom-tab-panel-json-div pre {
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: pre;
+}
+
+@media (max-width: 768px) {
+    .details-box-parent {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .tab-panel,
+    .box-content {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}

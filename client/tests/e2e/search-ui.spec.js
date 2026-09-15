@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import process from 'node:process';
 
 const apiURL = process.env.PLAYWRIGHT_API_URL || 'http://127.0.0.1:7071';
+const resultLinks = page => page.getByRole('link', { name: /^View details for / });
 
 function isApiResponse(response, operation, body = {}) {
   if (response.url() !== `${apiURL}/api/${operation}` || response.request().method() !== 'POST') {
@@ -84,7 +85,7 @@ test.describe('search UI', () => {
     await expect(page.getByText('Showing 1-7 of 7 results for')).toBeVisible();
 
     const expectedOrder = dogs.results.map(result => result.document.id);
-    const links = page.locator('.results a');
+    const links = resultLinks(page);
     await expect(links).toHaveCount(expectedOrder.length);
     expect(await links.evaluateAll(elements =>
       elements.map(element => element.getAttribute('href').split('/').pop()),
@@ -99,7 +100,7 @@ test.describe('search UI', () => {
       await page.getByRole('button', { name: 'Search' }).click();
     });
     await expect(page).toHaveURL(/\/search\?q=cats$/);
-    await expect(page.locator('.results a')).toHaveCount(cats.results.length);
+    await expect(resultLinks(page)).toHaveCount(cats.results.length);
   });
 
   test('applies and clears author and language facets', async ({ page }) => {
@@ -115,7 +116,7 @@ test.describe('search UI', () => {
     await expect(page.getByRole('button', {
       name: 'Remove Authors: Robert Muchamore filter',
     })).toBeVisible();
-    await expect(page.locator('.results a')).toHaveCount(1);
+    await expect(resultLinks(page)).toHaveCount(1);
 
     await expandFacet(page, 'Language code');
     await waitForSearch(
@@ -131,7 +132,7 @@ test.describe('search UI', () => {
     await expect(page.getByRole('button', {
       name: 'Remove Language code: eng filter',
     })).toBeVisible();
-    await expect(page.locator('.results a')).toHaveCount(1);
+    await expect(resultLinks(page)).toHaveCount(1);
 
     await waitForSearch(
       page,
@@ -140,7 +141,7 @@ test.describe('search UI', () => {
         name: 'Remove Authors: Robert Muchamore filter',
       }).click(),
     );
-    await expect(page.locator('.results a')).toHaveCount(4);
+    await expect(resultLinks(page)).toHaveCount(4);
 
     await waitForSearch(
       page,
@@ -150,13 +151,13 @@ test.describe('search UI', () => {
     await expect(page.getByRole('button', {
       name: 'Remove Language code: eng filter',
     })).toHaveCount(0);
-    await expect(page.locator('.results a')).toHaveCount(7);
+    await expect(resultLinks(page)).toHaveCount(7);
   });
 
   test('paginates, resets to page one, and ignores stale results', async ({ page }) => {
     await page.goto('/search?q=the');
     await expect(page.getByText(/Showing 1-8 of .* results for/)).toBeVisible();
-    const firstPage = await page.locator('.results a').evaluateAll(elements =>
+    const firstPage = await resultLinks(page).evaluateAll(elements =>
       elements.map(element => element.getAttribute('href')),
     );
 
@@ -176,7 +177,7 @@ test.describe('search UI', () => {
     });
     await expect(page.getByText(`Showing 1-${cats.count} of ${cats.count} results for`)).toBeVisible();
     await expect(page.getByLabel('Page 1, current page')).toBeVisible();
-    await expect(page.locator('.results a')).toHaveCount(cats.results.length);
+    await expect(resultLinks(page)).toHaveCount(cats.results.length);
   });
 
   test('keeps details Result and Raw Data in parity through reload and Back', async ({ page }) => {
@@ -194,11 +195,16 @@ test.describe('search UI', () => {
     await expect(page.getByRole('main')).toBeVisible();
     await expect(page.getByRole('heading', { name: lookup.document.original_title })).toBeVisible();
     await expect(page.getByRole('tabpanel', { name: 'Result' })).toBeVisible();
-    await expect(page.locator('.card-text')).toHaveText([
+    const details = page.getByRole('tabpanel', { name: 'Result' });
+    await expect(details.getByText(
       `${lookup.document.authors.join('; ')} - ${lookup.document.original_publication_year}`,
-      `ISBN ${lookup.document.isbn}`,
+      { exact: true },
+    )).toBeVisible();
+    await expect(details.getByText(`ISBN ${lookup.document.isbn}`, { exact: true })).toBeVisible();
+    await expect(details.getByText(
       `${lookup.document.ratings_count} Ratings`,
-    ]);
+      { exact: true },
+    )).toBeVisible();
     await page.getByRole('tab', { name: 'Raw Data' }).click();
     const rawData = page.getByRole('tabpanel', { name: 'Raw Data' }).locator('code');
     expect(JSON.parse(await rawData.textContent())).toEqual(lookup.document);
@@ -230,6 +236,6 @@ test.describe('search UI', () => {
       await queryBox.press('Enter');
     });
     await expect(page.getByText('Showing 0-0 of 0 results for')).toBeVisible();
-    await expect(page.locator('.results a')).toHaveCount(0);
+    await expect(resultLinks(page)).toHaveCount(0);
   });
 });

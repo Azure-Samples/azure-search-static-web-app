@@ -80,6 +80,8 @@ $env:PLAYWRIGHT_API_URL = 'http://127.0.0.1:7071'
 $env:PLAYWRIGHT_CLIENT_URL = 'http://127.0.0.1:3000'
 npm run test:api
 npm run test:e2e
+npm run test:visual
+npm run test:structure
 npm run test:all
 Pop-Location
 ```
@@ -87,7 +89,55 @@ Pop-Location
 The API suite first verifies the canonical 10,000-document dataset and stable
 book ID 9734. If that preflight fails, use the intended seeded environment
 rather than weakening the fixture. The native browser suite doesn't intercept,
-mock, or rewrite API responses.
+mock, or rewrite API responses. Controlled-network tests live in separate spec
+files and cover request counts, delayed out-of-order responses, loading,
+failure, missing-image, and long-content states without changing the live API
+contract tests.
+
+The browser coverage includes semantic-role interactions, keyboard operation,
+axe checks, and overflow checks at 320, 390, 768, and 1440 pixels. The API
+contract suite remains a separate Playwright project so a UI fixture can't
+hide a backend regression.
+
+### Visual and design-system validation
+
+`npm run test:visual` compares the principal current-UI states with the
+explicitly reviewed PNG files under
+`client/tests/visual/__screenshots__/current/`. Update them only after
+inspecting every changed image:
+
+```powershell
+Push-Location .\client
+npm run test:visual -- --update-snapshots
+git diff -- tests\visual\__screenshots__\current
+Pop-Location
+```
+
+The design-system integration uses an intentionally separate baseline and
+structure mode:
+
+```powershell
+Push-Location .\client
+npm run test:structure:design
+npm run test:design
+# Only after reviewing the combined UI:
+npm run test:design -- --update-snapshots
+git diff -- tests\visual\__screenshots__\design
+Pop-Location
+```
+
+Don't copy the current baseline into the design directory or accept snapshots
+solely to make a test pass. A reviewer must compare the combined UI with the
+approved source theme and inspect home, suggestions, results, combined facets,
+pagination, details, Raw Data, mobile navigation, and no-results states.
+
+`client/design-system.policy.json` is the maintainable migration policy. In
+design mode, the structure gate requires TypeScript source, `ThemeProvider`,
+`CssBaseline`, retained Playwright scripts, no Bootstrap/jQuery/Popper
+dependencies or classes, no superseded JSX/CSS implementations, and no raw
+colors or CSS lengths outside `src/theme.ts`. Relative layout values such as
+percentages and MUI numeric spacing remain valid; new visual constants belong
+in the theme rather than a component-level allowlist.
 
 The manual **Live Azure AI Search tests** workflow uses the protected
 `live-search-tests` environment. Configure its `AZURE_CLIENT_ID`,
