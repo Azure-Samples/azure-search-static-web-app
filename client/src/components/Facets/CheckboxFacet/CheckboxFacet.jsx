@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { Collapse, Checkbox, List, ListItem, ListItemText } from '@mui/material';
+import {
+    Collapse,
+    Checkbox,
+    FormControlLabel,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemText,
+} from '@mui/material';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
 
 import './CheckboxFacet.css';
@@ -18,32 +26,36 @@ export default function CheckboxFacet(props) {
                 id={facetValue.value}
                 className="facet-value-list-item"
             >
-                <Checkbox 
-                    edge="start" 
-                    disableRipple 
-                    checked={isSelected}
-                    onClick={ isSelected 
-                        ? () => props.removeFilter({field: props.name, value: facetValue.value})
-                        : () => props.addFilter(props.name, facetValue.value)
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            disableRipple
+                            checked={isSelected}
+                            onChange={isSelected
+                                ? () => props.removeFilter({field: props.name, value: facetValue.value})
+                                : () => props.addFilter(props.name, facetValue.value)
+                            }
+                        />
                     }
+                    label={`${facetValue.value} (${facetValue.count})`}
                 />
-                <ListItemText primary={`${facetValue.value} (${facetValue.count})`} />
             </ListItem>
         );
     });
 
     return (
         <div>
-            <ListItem 
-                disableRipple 
-                button 
+            <ListItemButton
+                disableRipple
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="facet-list-item"
+                aria-expanded={isExpanded}
+                aria-controls={`${props.name}-facet-values`}
             >
                 <ListItemText primary={props.mapFacetName(props.name)} />
                 {isExpanded ? <ExpandLess /> : <ExpandMore />}
-            </ListItem>
-            <Collapse in={isExpanded} component="div">
+            </ListItemButton>
+            <Collapse in={isExpanded} component="div" id={`${props.name}-facet-values`}>
                 <List className="facet-values-list">
                     {checkboxes}
                 </List>

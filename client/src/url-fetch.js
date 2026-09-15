@@ -12,10 +12,11 @@ function buildQueryString(params) {
         .join('&');
 }
 
-async function fetchInstance(url, { query = {}, body = null, headers = {}, method = 'GET' } = {}) {
+async function fetchInstance(url, { query = {}, body = null, headers = {}, method = 'GET', signal } = {}) {
     const queryString = buildQueryString(query);
-    // Handle empty baseURL for production (relative URLs)
-    const fullUrl = baseURL ? `${baseURL}${url}${queryString ? `?${queryString}` : ''}` : `${url}${queryString ? `?${queryString}` : ''}`;
+    const fullUrl = baseURL
+        ? `${baseURL}${url}${queryString ? `?${queryString}` : ''}`
+        : `${url}${queryString ? `?${queryString}` : ''}`;
 
     const response = await fetch(fullUrl, {
         method,
@@ -23,14 +24,15 @@ async function fetchInstance(url, { query = {}, body = null, headers = {}, metho
             'Content-Type': 'application/json',
             ...headers
         },
-        body: body ? JSON.stringify(body) : null
+        body: body ? JSON.stringify(body) : null,
+        signal
     });
 
-    if (response.ok || (response.status >= 200 && response.status < 400)) {
-        return await response.json();
-    } else {
+    if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    return response.json();
 }
 
 export default fetchInstance;

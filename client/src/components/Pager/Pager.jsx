@@ -75,7 +75,7 @@ export default function Pager(props) {
             if (i === page) {
                 links.push(
                     <li className="page-item active" key={i}>
-                        <span className="page-link" aria-current="page">
+                        <span className="page-link" aria-current="page" aria-label={`Page ${i}, current page`}>
                             {i}
                         </span>
                     </li>
@@ -102,7 +102,7 @@ export default function Pager(props) {
         return (
             <li className={`page-item ${isFirstPage ? 'disabled' : ''}`} key="prev">
                 {isFirstPage ? (
-                    <span className="page-link">Previous</span>
+                    <span className="page-link" aria-disabled="true">Previous</span>
                 ) : (
                     <button 
                         className="page-link" 
@@ -121,7 +121,7 @@ export default function Pager(props) {
         return (
             <li className={`page-item ${isLastPage ? 'disabled' : ''}`} key="next">
                 {isLastPage ? (
-                    <span className="page-link">Next</span>
+                    <span className="page-link" aria-disabled="true">Next</span>
                 ) : (
                     <button 
                         className="page-link" 

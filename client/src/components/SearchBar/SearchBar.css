@@ -28,9 +28,21 @@
     margin-left: 5px;
 }
 
+@media (max-width: 576px) {
+  .main--home {
+    width: 100%;
+  }
+
+  .search-bar-wide {
+    width: 95%;
+    margin-left: 0;
+  }
+}
+
 /* Moved styles from SearchBar.jsx */
 .autocomplete {
-  width: 75%;
+  flex: 1;
+  min-width: 0;
 }
 
 .autocomplete .MuiAutocomplete-endAdornment {
@@ -43,4 +55,3 @@
   align-items: center;
   flex: 1;
 }
-

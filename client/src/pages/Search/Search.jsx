@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useState } from 'react';
 import fetchInstance from '../../url-fetch';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useLocation, useNavigate } from "react-router-dom";
@@ -12,49 +12,41 @@ import "./Search.css";
 
 export default function Search() {
 
-  let location = useLocation();
+  const location = useLocation();
   const navigate = useNavigate();
+  const urlQuery = new URLSearchParams(location.search).get('q') || '*';
 
   const [results, setResults] = useState([]);
   const [resultCount, setResultCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [q, setQ] = useState(new URLSearchParams(location.search).get('q') ?? "*");
-  const [top] = useState(new URLSearchParams(location.search).get('top') ?? 8);
-  const [skip, setSkip] = useState(new URLSearchParams(location.search).get('skip') ?? 0);
+  const [top] = useState(Number(new URLSearchParams(location.search).get('top')) || 8);
   const [filters, setFilters] = useState([]);
   const [facets, setFacets] = useState({});
   const [isLoading, setIsLoading] = useState(true);
 
-  let resultsPerPage = top;
+  const skip = (currentPage - 1) * top;
+  const resultsPerPage = top;
 
   // Handle page changes in a controlled manner
   function handlePageChange(newPage) {
     setCurrentPage(newPage);
   }
 
-  // Calculate skip value and fetch results when relevant parameters change
   useEffect(() => {
-    // Calculate skip based on current page
-    const calculatedSkip = (currentPage - 1) * top;
-    
-    // Only update if skip has actually changed
-    if (calculatedSkip !== skip) {
-      setSkip(calculatedSkip);
-      return; // Skip the fetch since skip will change and trigger another useEffect
-    }
-    
-    // Proceed with fetch
+    const controller = new AbortController();
     setIsLoading(true);
-    
     const body = {
-      q: q,
-      top: top,
-      skip: skip,
-      filters: filters
+      q: urlQuery,
+      top,
+      skip,
+      filters,
     };
 
-    
-    fetchInstance('/api/search', { body, method: 'POST' })
+    fetchInstance('/api/search', {
+      body,
+      method: 'POST',
+      signal: controller.signal,
+    })
       .then(response => {
         setResults(response.results);
         setFacets(response.facets);
@@ -62,32 +54,30 @@ export default function Search() {
         setIsLoading(false);
       })
       .catch(error => {
-        console.log(error);
-        setIsLoading(false);
+        if (error.name !== 'AbortError') {
+          console.error(error);
+          setResults([]);
+          setFacets({});
+          setResultCount(0);
+          setIsLoading(false);
+        }
       });
-  }, [q, top, skip, filters, currentPage]);
 
-  // pushing the new search term to history when q is updated
-  // allows the back button to work as expected when coming back from the details page
-  useEffect(() => {
-    navigate('/search?q=' + q);
+    return () => controller.abort();
+  }, [filters, skip, top, urlQuery]);
+
+  const postSearchHandler = (searchTerm) => {
+    const nextQuery = searchTerm?.trim() || '*';
     setCurrentPage(1);
     setFilters([]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q]);
-
-
-  let postSearchHandler = (searchTerm) => {
-    setQ(searchTerm);
-  }
-
+    navigate(`/search?q=${encodeURIComponent(nextQuery)}`);
+  };
 
   // filters should be applied across entire result set, 
   // not just within the current page
   const updateFilterHandler = (newFilters) => {
 
     // Reset paging
-    setSkip(0);
     setCurrentPage(1);
 
     // Set filters
@@ -99,7 +89,7 @@ export default function Search() {
       <div className="row">
         <div className="search-bar-column col-md-3">
           <div className="search-bar-column-container">
-            <SearchBar postSearchHandler={postSearchHandler} query={q} width={false}></SearchBar>
+            <SearchBar postSearchHandler={postSearchHandler} query={urlQuery} width={false}></SearchBar>
           </div>
           <Facets facets={facets} filters={filters} setFilters={updateFilterHandler}></Facets>
         </div>
@@ -110,7 +100,7 @@ export default function Search() {
             </div>
           ) : (
             <div className="search-results-container">
-              <Results documents={results} top={top} skip={skip} count={resultCount} query={q}></Results>
+              <Results documents={results} top={top} skip={skip} count={resultCount} query={urlQuery}></Results>
               <Pager className="pager-style" currentPage={currentPage} resultCount={resultCount} resultsPerPage={resultsPerPage} onPageChange={handlePageChange}></Pager>
             </div>
           )}

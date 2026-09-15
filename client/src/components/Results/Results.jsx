@@ -5,9 +5,9 @@ import "./Results.css";
 
 export default function Results(props) {
 
-  let results = props.documents.map((result, index) => {
+  let results = props.documents.map((result) => {
     return <Result 
-        key={index} 
+        key={result.document.id}
         document={result.document}
       />;
   });
