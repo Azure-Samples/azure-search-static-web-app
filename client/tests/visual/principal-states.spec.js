@@ -121,12 +121,18 @@ test.describe('reviewed visual baselines', () => {
     });
 
     await expandFacet(page, 'Authors');
+    const authorFacet = process.env.DESIGN_SYSTEM_MODE === 'design'
+      ? page.locator('[id="Robert Muchamore"]')
+      : page.locator('[id="Robert Muchamore"] input[type="checkbox"]');
     await waitForSearch(
       page,
       { filters: [{ field: 'authors', value: 'Robert Muchamore' }] },
-      () => page.locator('[id="Robert Muchamore"] input[type="checkbox"]').check(),
+      () => authorFacet.click(),
     );
     await expandFacet(page, 'Language code');
+    const languageFacet = process.env.DESIGN_SYSTEM_MODE === 'design'
+      ? page.locator('[id="eng"]')
+      : page.locator('[id="eng"] input[type="checkbox"]');
     await waitForSearch(
       page,
       {
@@ -135,7 +141,7 @@ test.describe('reviewed visual baselines', () => {
           { field: 'language_code', value: 'eng' },
         ],
       },
-      () => page.locator('[id="eng"] input[type="checkbox"]').check(),
+      () => languageFacet.click(),
     );
     await expectStateSnapshot(page, 'results-combined-facets.png', {
       mask: [page.locator('main img')],
