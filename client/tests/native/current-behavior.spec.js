@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import process from 'node:process';
-import { apiURL, searchBox } from '../helpers/ui.js';
+import { apiURL, positiveSearchQuery, searchBox } from '../helpers/ui.js';
 
 test.describe('native application behavior', () => {
   test('renders the existing home search experience', async ({ page }) => {
@@ -10,17 +10,17 @@ test.describe('native application behavior', () => {
   });
 
   test('renders the existing direct search route', async ({ page }) => {
-    await page.goto('/search?q=dog');
-    await expect(page).toHaveURL(/\/search\?q=dog$/);
-    await expect(searchBox(page)).toHaveValue('dog');
+    await page.goto(`/search?q=${positiveSearchQuery}`);
+    await expect(page).toHaveURL(new RegExp(`/search\\?q=${positiveSearchQuery}$`));
+    await expect(searchBox(page)).toHaveValue(positiveSearchQuery);
   });
 
   test('native search results should render', async ({ page }) => {
     test.fail(true, 'Known native defect: successful API operations return HTTP 302.');
 
-    await page.goto('/search?q=dog');
+    await page.goto(`/search?q=${positiveSearchQuery}`);
     const response = await page.request.post(`${apiURL}/api/search`, {
-      data: { q: 'dog', top: 8, skip: 0, filters: [] },
+      data: { q: positiveSearchQuery, top: 8, skip: 0, filters: [] },
     });
     expect(response.status()).toBe(200);
     await expect(page.locator('a[href="/details/7609"]')).toBeVisible();
@@ -30,7 +30,7 @@ test.describe('native application behavior', () => {
     test.fail(true, 'Known native defect: successful API operations return HTTP 302.');
 
     await page.goto('/');
-    await searchBox(page).fill('dog');
+    await searchBox(page).fill(positiveSearchQuery);
     await expect(page.getByText('Dog on It', { exact: true })).toBeVisible();
   });
 

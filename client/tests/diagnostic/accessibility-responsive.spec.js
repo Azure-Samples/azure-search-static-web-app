@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { bookDocument, searchPayload } from '../helpers/ui.js';
+import { bookDocument, positiveSearchQuery, searchPayload } from '../helpers/ui.js';
 
 async function expectNoAxeViolations(page) {
   const results = await new AxeBuilder({ page })
@@ -35,7 +35,7 @@ test.describe('test-only accessibility and responsive diagnostics', () => {
         'Known native defect: search results overflow a 320px viewport.',
       );
       await page.setViewportSize({ width, height: 900 });
-      await page.goto('/search?q=dog');
+      await page.goto(`/search?q=${positiveSearchQuery}`);
       await expect(page.locator('a[href="/details/9734"]')).toBeVisible();
 
       const dimensions = await page.evaluate(() => ({

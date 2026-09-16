@@ -4,9 +4,12 @@ import {
   disableMotion,
   expandFacet,
   isApiResponse,
+  positiveSearchQuery,
+  resultLinks,
   searchBox,
   searchPayload,
   seededDogBooks,
+  seededDogPage2,
   waitForSearch,
 } from '../helpers/ui.js';
 
@@ -29,14 +32,14 @@ test.beforeEach(async ({ page }) => {
     const body = route.request().postDataJSON();
     const hasAuthor = body.filters?.some(filter => filter.field === 'authors');
     const noResults = body.q === 'qzxwvvjk607472';
-    const documents = body.q === 'the'
-      ? books
-      : noResults
+    const documents = noResults
       ? []
       : hasAuthor
         ? [books[1]]
-        : books;
-    const count = noResults ? 0 : hasAuthor ? 1 : body.q === 'the' ? 24 : 8;
+        : body.skip === 8
+          ? seededDogPage2
+          : books;
+    const count = noResults ? 0 : hasAuthor ? 1 : 24;
     const payload = searchPayload(documents, {
       count,
       facets: {
@@ -93,16 +96,21 @@ test.describe('reviewed visual baselines', () => {
   test('suggestions', async ({ page }) => {
     await page.goto('/');
     const suggestion = page.waitForResponse(response =>
-      isApiResponse(response, 'suggest', { q: 'dog', top: 5, suggester: 'sg' }));
-    await searchBox(page).fill('dog');
+      isApiResponse(response, 'suggest', { q: positiveSearchQuery, top: 5, suggester: 'sg' }));
+    await searchBox(page).fill(positiveSearchQuery);
     await suggestion;
     await expect(page.getByText(books[1].title, { exact: true })).toBeVisible();
     await expectStateSnapshot(page, 'suggestions-desktop.png');
   });
 
-  test('results, combined facets, and pagination', async ({ page }) => {
-    await page.goto('/search?q=dog');
-    await expect(page.getByText('Showing 1-8 of 8 results for')).toBeVisible();
+  test('dog page 1 and page 2 preserve query, ranges, and distinct books', async ({ page }) => {
+    await page.goto(`/search?q=${positiveSearchQuery}`);
+    await expect(page).toHaveURL(new RegExp(`/search\\?q=${positiveSearchQuery}$`));
+    await expect(searchBox(page)).toHaveValue(positiveSearchQuery);
+    await expect(page.getByText('Showing 1-8 of 24 results for')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Go to page 3' })).toBeVisible();
+    const firstPageIds = await resultLinks(page).evaluateAll(links =>
+      links.map(link => link.getAttribute('href')));
     await expectStateSnapshot(page, 'results-desktop.png');
 
     await expandFacet(page, 'Authors');
@@ -130,9 +138,20 @@ test.describe('reviewed visual baselines', () => {
     );
     await expectStateSnapshot(page, 'results-combined-facets.png');
 
-    await page.goto('/search?q=the');
-    await page.getByRole('button', { name: 'Go to next page' }).click();
-    await expect(page.getByText(/Showing 9-16 of .* results for/)).toBeVisible();
+    await page.goto(`/search?q=${positiveSearchQuery}`);
+    await waitForSearch(
+      page,
+      { q: positiveSearchQuery, skip: 8, top: 8 },
+      () => page.getByRole('button', { name: 'Go to next page' }).click(),
+    );
+    await expect(page).toHaveURL(new RegExp(`/search\\?q=${positiveSearchQuery}$`));
+    await expect(searchBox(page)).toHaveValue(positiveSearchQuery);
+    await expect(page.getByText('Showing 9-16 of 24 results for')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Go to page 3' })).toBeVisible();
+    const secondPageIds = await resultLinks(page).evaluateAll(links =>
+      links.map(link => link.getAttribute('href')));
+    expect(secondPageIds).not.toEqual(firstPageIds);
+    expect(secondPageIds.filter(id => firstPageIds.includes(id))).toEqual([]);
     await expectStateSnapshot(page, 'results-page-2.png');
   });
 

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import process from 'node:process';
-import { bookDocument, searchPayload } from '../helpers/ui.js';
+import { bookDocument, positiveSearchQuery, searchPayload } from '../helpers/ui.js';
 
 test.describe('approved design-system theme surfaces', () => {
   test.skip(
@@ -30,7 +30,7 @@ test.describe('approved design-system theme surfaces', () => {
       contentType: 'application/json',
       body: JSON.stringify(searchPayload([bookDocument('9734', 'Mad Dogs')])),
     }));
-    await page.goto('/search?q=dog');
+    await page.goto(`/search?q=${positiveSearchQuery}`);
     const result = page.locator('a[href="/details/9734"]');
     await expect(result).toBeVisible();
     await expect(result).toHaveCSS('color', 'rgb(0, 120, 212)');

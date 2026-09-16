@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import {
   bookDocument,
   expectBookCardCover,
+  positiveSearchQuery,
   resultLinks,
   searchBox,
   searchPayload,
@@ -25,7 +26,7 @@ test.describe('test-only controlled response diagnostics', () => {
     const coverResponses = expectedBooks.map(book =>
       page.waitForResponse(response =>
         response.url() === book.image_url && response.status() === 200));
-    await Promise.all([...coverResponses, page.goto('/search?q=dog')]);
+    await Promise.all([...coverResponses, page.goto(`/search?q=${positiveSearchQuery}`)]);
     await expect(page.getByText('Showing 1-5 of 5 results for')).toBeVisible();
     for (const book of expectedBooks) {
       await expectBookCardCover(page, book);
@@ -41,7 +42,7 @@ test.describe('test-only controlled response diagnostics', () => {
       }));
 
     await page.goto('/');
-    await searchBox(page).fill('dog');
+    await searchBox(page).fill(positiveSearchQuery);
     await expect(page.getByText('Mad Dogs', { exact: true })).toBeVisible();
   });
 
@@ -64,7 +65,7 @@ test.describe('test-only controlled response diagnostics', () => {
       await fulfillJson(route, searchPayload([bookDocument(body.q, body.q)]));
     });
 
-    await page.goto('/search?q=dog');
+    await page.goto(`/search?q=${positiveSearchQuery}`);
     await expect(resultLinks(page)).toHaveCount(1);
     await searchBox(page).fill('cats');
     await page.getByRole('button', { name: 'Search' }).click();

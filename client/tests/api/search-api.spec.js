@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { positiveSearchQuery } from '../helpers/ui.js';
 
 const expectedLookup = {
   id: '9734',
@@ -22,7 +23,7 @@ test.describe('Azure AI Search API contract', () => {
     test.fail(true, 'Known native defect: successful API operations return HTTP 302.');
 
     const response = await post(request, '/api/search', {
-      q: 'dog',
+      q: positiveSearchQuery,
       top: 8,
       skip: 0,
       filters: [],
@@ -74,7 +75,7 @@ test.describe('Azure AI Search API contract', () => {
 
   test('returns search results and facets for dog', async ({ request }) => {
     const response = await post(request, '/api/search', {
-      q: 'dog',
+      q: positiveSearchQuery,
       top: 8,
       skip: 0,
       filters: [],
@@ -114,7 +115,7 @@ test.describe('Azure AI Search API contract', () => {
 
     for (const fixture of cases) {
       const response = await post(request, '/api/search', {
-        q: 'dog',
+        q: positiveSearchQuery,
         top: 8,
         skip: 0,
         filters: fixture.filters,
@@ -146,15 +147,15 @@ test.describe('Azure AI Search API contract', () => {
     expect(response.status()).toBe(400);
   });
 
-  test('returns distinct bounded pages without relying on broad-query totals', async ({ request }) => {
+  test('returns three distinct dog pages with the same query', async ({ request }) => {
     const firstResponse = await post(request, '/api/search', {
-      q: 'the',
+      q: positiveSearchQuery,
       top: 8,
       skip: 0,
       filters: [],
     });
     const secondResponse = await post(request, '/api/search', {
-      q: 'the',
+      q: positiveSearchQuery,
       top: 8,
       skip: 8,
       filters: [],
@@ -166,6 +167,9 @@ test.describe('Azure AI Search API contract', () => {
 
     expect(firstIds).toHaveLength(8);
     expect(secondIds).toHaveLength(8);
+    expect(first.count).toBe(24);
+    expect(second.count).toBe(24);
+    expect(Math.ceil(first.count / 8)).toBe(3);
     expect(new Set([...firstIds, ...secondIds]).size).toBe(16);
   });
 
@@ -193,7 +197,7 @@ test.describe('Azure AI Search API contract', () => {
   test('malformed search should return a client error', async ({ request }) => {
     test.fail(true, 'Known native defect: malformed search input is not validated as HTTP 400.');
     const search = await post(request, '/api/search', {
-      q: 'dog',
+      q: positiveSearchQuery,
       top: 0,
       skip: -1,
       filters: [],

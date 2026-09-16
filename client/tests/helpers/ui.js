@@ -2,6 +2,7 @@ import { expect } from '@playwright/test';
 import process from 'node:process';
 
 export const apiURL = process.env.PLAYWRIGHT_API_URL || 'http://127.0.0.1:7071';
+export const positiveSearchQuery = 'dog';
 export const searchBox = page =>
   page.getByPlaceholder('What are you looking for?');
 export const resultLinks = page =>
@@ -99,6 +100,80 @@ export const seededDogBooks = [
     isbn: '810983915',
     average_rating: 4.14,
     ratings_count: 78592,
+  }),
+];
+
+export const seededDogPage2 = [
+  bookDocument('1344', 'What the Dog Saw and Other Adventures', {
+    authors: ['Malcolm Gladwell'],
+    image_url: 'https://images.gr-assets.com/books/1344263875m/6516450.jpg',
+    original_publication_year: 2009,
+    isbn: '316078573',
+    average_rating: 3.82,
+    ratings_count: 65277,
+  }),
+  bookDocument('4960', 'Love Is a Dog from Hell', {
+    original_title: 'Love Is a Dog from Hell: Poems, 1974-1977',
+    authors: ['Charles Bukowski'],
+    image_url: 'https://images.gr-assets.com/books/1377260823m/23534.jpg',
+    original_publication_year: 1977,
+    isbn: '876853629',
+    average_rating: 4.16,
+    ratings_count: 19471,
+  }),
+  bookDocument('5454', "Merle's Door: Lessons from a Freethinking Dog", {
+    authors: ['Ted Kerasote'],
+    language_code: 'en-US',
+    image_url: 'https://images.gr-assets.com/books/1310704047m/430968.jpg',
+    original_publication_year: 2007,
+    isbn: '151012709',
+    average_rating: 4.18,
+    ratings_count: 14953,
+  }),
+  bookDocument('4854', 'Started Early, Took My Dog (Jackson Brodie, #4)', {
+    original_title: 'Started Early, Took My Dog',
+    authors: ['Kate Atkinson'],
+    image_url: 'https://images.gr-assets.com/books/1273446011m/7307795.jpg',
+    original_publication_year: 2010,
+    isbn: '385608020',
+    average_rating: 3.89,
+    ratings_count: 21662,
+  }),
+  bookDocument('6790', 'Flight of the Old Dog (Patrick McLanahan, #1)', {
+    original_title: 'Flight Of The Old Dog',
+    authors: ['Dale Brown'],
+    image_url: noPhotoCoverURL,
+    original_publication_year: 1987,
+    isbn: '042519518X',
+    average_rating: 4.08,
+    ratings_count: 13607,
+  }),
+  bookDocument('5341', 'To Say Nothing of the Dog (Oxford Time Travel, #2)', {
+    original_title: 'To Say Nothing of the Dog',
+    authors: ['Connie Willis'],
+    image_url: 'https://images.gr-assets.com/books/1469410460m/77773.jpg',
+    original_publication_year: 1998,
+    isbn: '553575384',
+    average_rating: 4.13,
+    ratings_count: 23197,
+  }),
+  bookDocument('6583', 'Shoe Dog: A Memoir by the Creator of NIKE', {
+    original_title: 'Shoe Dog: A Memoir by the Creator of Nike',
+    authors: ['Phil Knight'],
+    image_url: 'https://images.gr-assets.com/books/1457284880m/27220736.jpg',
+    original_publication_year: 2016,
+    isbn: '1501135910',
+    average_rating: 4.46,
+    ratings_count: 22373,
+  }),
+  bookDocument('8528', 'Oogy: The Dog Only a Family Could Love', {
+    authors: ['Larry Levin'],
+    language_code: 'en-GB',
+    image_url: 'https://images.gr-assets.com/books/1289446928m/8105569.jpg',
+    original_publication_year: 2009,
+    isbn: '446546313',
+    average_rating: 4.04,
+    ratings_count: 10273,
   }),
 ];
 
