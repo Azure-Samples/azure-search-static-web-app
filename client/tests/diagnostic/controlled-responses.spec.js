@@ -1,12 +1,11 @@
 import { expect, test } from '@playwright/test';
 import {
-  bookCoverURL,
   bookDocument,
   expectBookCardCover,
   resultLinks,
-  routeBookCovers,
   searchBox,
   searchPayload,
+  seededDogBooks,
 } from '../helpers/ui.js';
 
 async function fulfillJson(route, payload, status = 200) {
@@ -18,24 +17,21 @@ async function fulfillJson(route, payload, status = 200) {
 }
 
 test.describe('test-only controlled response diagnostics', () => {
-  test.beforeEach(async ({ page }) => {
-    await routeBookCovers(page);
-  });
-
-  test('maps each book card to its visible, rendered cover', async ({ page }) => {
-    const expectedBooks = [
-      { document: bookDocument('9734', 'Mad Dogs'), coverURL: bookCoverURL('9734') },
-      { document: bookDocument('dog-on-it', 'Dog on It'), coverURL: bookCoverURL('dog-on-it') },
-      { document: bookDocument('dogs-purpose', "A Dog's Purpose"), coverURL: bookCoverURL('dogs-purpose') },
-    ];
+  test('maps real seeded books to visible, successfully loaded covers', async ({ page }) => {
+    const expectedBooks = seededDogBooks.slice(1, 6);
     await page.route('**/api/search', route =>
-      fulfillJson(route, searchPayload(expectedBooks.map(book => book.document))));
+      fulfillJson(route, searchPayload(expectedBooks)));
 
-    await page.goto('/search?q=dog');
-    await expect(page.getByText('Showing 1-3 of 3 results for')).toBeVisible();
+    const coverResponses = expectedBooks.map(book =>
+      page.waitForResponse(response =>
+        response.url() === book.image_url && response.status() === 200));
+    await Promise.all([...coverResponses, page.goto('/search?q=dog')]);
+    await expect(page.getByText('Showing 1-5 of 5 results for')).toBeVisible();
     for (const book of expectedBooks) {
-      await expectBookCardCover(page, book.document, book.coverURL);
+      await expectBookCardCover(page, book);
     }
+    await expect(page.locator('a[href="/details/3830"] img'))
+      .not.toHaveAttribute('src', expectedBooks[1].image_url);
   });
 
   test('renders suggestions when a test intercept supplies HTTP 200', async ({ page }) => {

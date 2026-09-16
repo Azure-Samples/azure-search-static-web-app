@@ -7,9 +7,8 @@ export const searchBox = page =>
 export const resultLinks = page =>
   page.locator('a[href^="/details/"]');
 
-export function bookCoverURL(id) {
-  return `https://covers.test/books/${encodeURIComponent(String(id))}.svg`;
-}
+const noPhotoCoverURL =
+  'https://s.gr-assets.com/assets/nophoto/book/111x148-bcc042a9c91a29c1d680899eff700a03.png';
 
 export function bookDocument(id, title, overrides = {}) {
   return {
@@ -18,7 +17,7 @@ export function bookDocument(id, title, overrides = {}) {
     original_title: title,
     authors: ['Test Author'],
     language_code: 'eng',
-    image_url: bookCoverURL(id),
+    image_url: noPhotoCoverURL,
     original_publication_year: 2026,
     isbn: `TEST-${id}`,
     average_rating: 4.2,
@@ -27,47 +26,89 @@ export function bookDocument(id, title, overrides = {}) {
   };
 }
 
-function coverFixture(id) {
-  const hash = [...id].reduce((value, character) =>
-    ((value * 31) + character.charCodeAt(0)) >>> 0, 0);
-  const hue = (Math.imul(hash, 137) >>> 0) % 360;
-  const escapedId = id.replace(/[&<>"']/g, character => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&apos;',
-  })[character]);
+export const seededDogBooks = [
+  bookDocument('8691', 'One Good Dog', {
+    authors: ['Susan  Wilson'],
+    language_code: 'en-US',
+    image_url: noPhotoCoverURL,
+    original_publication_year: 2010,
+    isbn: '312571259',
+    average_rating: 4.07,
+    ratings_count: 10379,
+  }),
+  bookDocument('3830', 'Love That Dog (Jack, #1)', {
+    original_title: 'Love That Dog',
+    authors: ['Sharon Creech'],
+    language_code: 'en-US',
+    image_url: 'https://images.gr-assets.com/books/1415581593m/53498.jpg',
+    original_publication_year: 2001,
+    isbn: '64409597',
+    average_rating: 4.01,
+    ratings_count: 30254,
+  }),
+  bookDocument('1488', 'Go, Dog. Go!', {
+    authors: ['P.D. Eastman'],
+    image_url: 'https://images.gr-assets.com/books/1333578440m/460548.jpg',
+    original_publication_year: 1961,
+    isbn: '394800206',
+    average_rating: 4.08,
+    ratings_count: 66360,
+  }),
+  bookDocument('2516', 'The Dog Stars', {
+    authors: ['Peter Heller'],
+    language_code: null,
+    image_url: 'https://images.gr-assets.com/books/1388122817m/13330761.jpg',
+    original_publication_year: 2012,
+    isbn: '307959945',
+    average_rating: 3.9,
+    ratings_count: 33465,
+  }),
+  bookDocument('7609', 'Dog on It (A Chet and Bernie Mystery #1)', {
+    original_title: 'Dog on It',
+    authors: ['Spencer Quinn'],
+    language_code: 'en-US',
+    image_url: 'https://images.gr-assets.com/books/1342376684m/5600151.jpg',
+    original_publication_year: 2008,
+    isbn: '1416585834',
+    average_rating: 3.85,
+    ratings_count: 13525,
+  }),
+  bookDocument('6809', 'The Power of the Dog', {
+    authors: ['Don Winslow'],
+    image_url: 'https://images.gr-assets.com/books/1467260965m/206236.jpg',
+    original_publication_year: 2005,
+    isbn: '1400096936',
+    average_rating: 4.36,
+    ratings_count: 10195,
+  }),
+  bookDocument('6084', 'The Pigeon Finds a Hot Dog!', {
+    authors: ['Mo Willems'],
+    language_code: 'en-US',
+    image_url: noPhotoCoverURL,
+    original_publication_year: 2004,
+    isbn: '786818697',
+    average_rating: 4.35,
+    ratings_count: 20510,
+  }),
+  bookDocument('1194', 'Dog Days (Diary of a Wimpy Kid, #4)', {
+    original_title: 'Dog Days',
+    authors: ['Jeff Kinney'],
+    language_code: 'en-US',
+    image_url: noPhotoCoverURL,
+    original_publication_year: 2009,
+    isbn: '810983915',
+    average_rating: 4.14,
+    ratings_count: 78592,
+  }),
+];
 
-  return `
-    <svg xmlns="http://www.w3.org/2000/svg" width="180" height="240" viewBox="0 0 180 240">
-      <rect width="180" height="240" fill="hsl(${hue} 62% 36%)"/>
-      <rect x="12" y="12" width="156" height="216" rx="5" fill="hsl(${hue} 70% 48%)" stroke="white" stroke-width="3"/>
-      <path d="M30 55h120M30 185h120" stroke="white" stroke-width="3" opacity=".8"/>
-      <text x="90" y="105" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle">TEST COVER</text>
-      <text x="90" y="135" fill="white" font-family="Arial, sans-serif" font-size="13" text-anchor="middle">${escapedId}</text>
-    </svg>
-  `;
-}
-
-export async function routeBookCovers(page) {
-  await page.route('https://covers.test/books/**', route => {
-    const id = decodeURIComponent(new URL(route.request().url()).pathname.split('/').pop().replace(/\.svg$/, ''));
-    return route.fulfill({
-      status: 200,
-      contentType: 'image/svg+xml',
-      body: coverFixture(id),
-    });
-  });
-}
-
-export async function expectBookCardCover(page, document, expectedURL) {
+export async function expectBookCardCover(page, document) {
   const card = page.locator(`a[href="/details/${document.id}"]`);
-  await expect(card.getByText(document.title, { exact: true })).toBeVisible();
+  await expect(card.getByText(document.original_title, { exact: true })).toBeVisible();
 
   const image = card.locator('img');
   await expect(image).toHaveAttribute('alt', document.original_title);
-  await expect(image).toHaveAttribute('src', expectedURL);
+  await expect(image).toHaveAttribute('src', document.image_url);
   await expect(image).toBeVisible();
 
   const renderedImage = await image.evaluate(element => ({

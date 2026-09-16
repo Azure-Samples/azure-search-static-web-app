@@ -1,16 +1,12 @@
 import { expect, test } from '@playwright/test';
 import process from 'node:process';
-import { bookDocument, routeBookCovers, searchPayload } from '../helpers/ui.js';
+import { bookDocument, searchPayload } from '../helpers/ui.js';
 
 test.describe('approved design-system theme surfaces', () => {
   test.skip(
     process.env.DESIGN_SYSTEM_MODE !== 'design',
     'Computed theme assertions run only against the combined design-system branch.',
   );
-
-  test.beforeEach(async ({ page }) => {
-    await routeBookCovers(page);
-  });
 
   test('uses theme typography and palette for principal interactive surfaces', async ({ page }) => {
     await page.goto('/');

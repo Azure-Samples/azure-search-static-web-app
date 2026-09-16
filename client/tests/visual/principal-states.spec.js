@@ -1,53 +1,46 @@
 import { expect, test } from '@playwright/test';
 import process from 'node:process';
 import {
-  bookDocument,
   disableMotion,
   expandFacet,
   isApiResponse,
-  routeBookCovers,
   searchBox,
   searchPayload,
+  seededDogBooks,
   waitForSearch,
 } from '../helpers/ui.js';
 
-const books = [
-  bookDocument('9734', 'Mad Dogs', { authors: ['Robert Muchamore'] }),
-  ...Array.from({ length: 6 }, (_, index) =>
-    bookDocument(`book-${index}`, `Book result ${index + 1}`)),
-];
+const books = seededDogBooks;
 
 test.beforeEach(async ({ page }) => {
-  await routeBookCovers(page);
   await page.route('**/api/suggest', route => route.fulfill({
     status: 200,
     contentType: 'application/json',
     body: JSON.stringify({
-      suggestions: [{ text: 'Mad Dogs', document: books[0] }],
+      suggestions: [{ text: books[1].title, document: books[1] }],
     }),
   }));
   await page.route('**/api/lookup*', route => route.fulfill({
     status: 200,
     contentType: 'application/json',
-    body: JSON.stringify({ document: books[0] }),
+    body: JSON.stringify({ document: books[1] }),
   }));
   await page.route('**/api/search', async route => {
     const body = route.request().postDataJSON();
     const hasAuthor = body.filters?.some(filter => filter.field === 'authors');
     const noResults = body.q === 'qzxwvvjk607472';
     const documents = body.q === 'the'
-      ? Array.from({ length: 8 }, (_, index) =>
-        bookDocument(`page-${(body.skip || 0) + index}`, `Page result ${(body.skip || 0) + index + 1}`))
+      ? books
       : noResults
       ? []
       : hasAuthor
-        ? [books[0]]
+        ? [books[1]]
         : books;
-    const count = noResults ? 0 : hasAuthor ? 1 : body.q === 'the' ? 24 : 7;
+    const count = noResults ? 0 : hasAuthor ? 1 : body.q === 'the' ? 24 : 8;
     const payload = searchPayload(documents, {
       count,
       facets: {
-        authors: [{ value: 'Robert Muchamore', count: 1 }],
+        authors: [{ value: 'Sharon Creech', count: 1 }],
         language_code: [{ value: 'eng', count: hasAuthor ? 1 : 4 }],
       },
     });
@@ -65,15 +58,7 @@ async function prepareSnapshot(page) {
     if (document.fonts?.ready) {
       await document.fonts.ready;
     }
-    await Promise.all(
-      [...document.images].map(image =>
-        image.complete
-          ? Promise.resolve()
-          : new Promise(resolve => {
-              image.addEventListener('load', resolve, { once: true });
-              image.addEventListener('error', resolve, { once: true });
-            })),
-    );
+    await Promise.all([...document.images].map(image => image.decode()));
   });
 }
 
@@ -111,22 +96,22 @@ test.describe('reviewed visual baselines', () => {
       isApiResponse(response, 'suggest', { q: 'dog', top: 5, suggester: 'sg' }));
     await searchBox(page).fill('dog');
     await suggestion;
-    await expect(page.getByText('Mad Dogs', { exact: true })).toBeVisible();
+    await expect(page.getByText(books[1].title, { exact: true })).toBeVisible();
     await expectStateSnapshot(page, 'suggestions-desktop.png');
   });
 
   test('results, combined facets, and pagination', async ({ page }) => {
     await page.goto('/search?q=dog');
-    await expect(page.getByText('Showing 1-7 of 7 results for')).toBeVisible();
+    await expect(page.getByText('Showing 1-8 of 8 results for')).toBeVisible();
     await expectStateSnapshot(page, 'results-desktop.png');
 
     await expandFacet(page, 'Authors');
     const authorFacet = process.env.DESIGN_SYSTEM_MODE === 'design'
-      ? page.locator('[id="Robert Muchamore"]')
-      : page.locator('[id="Robert Muchamore"] input[type="checkbox"]');
+      ? page.locator('[id="Sharon Creech"]')
+      : page.locator('[id="Sharon Creech"] input[type="checkbox"]');
     await waitForSearch(
       page,
-      { filters: [{ field: 'authors', value: 'Robert Muchamore' }] },
+      { filters: [{ field: 'authors', value: 'Sharon Creech' }] },
       () => authorFacet.click(),
     );
     await expandFacet(page, 'Language code');
@@ -137,7 +122,7 @@ test.describe('reviewed visual baselines', () => {
       page,
       {
         filters: [
-          { field: 'authors', value: 'Robert Muchamore' },
+          { field: 'authors', value: 'Sharon Creech' },
           { field: 'language_code', value: 'eng' },
         ],
       },
@@ -152,7 +137,7 @@ test.describe('reviewed visual baselines', () => {
   });
 
   test('details result and raw data', async ({ page }) => {
-    await page.goto('/details/9734');
+    await page.goto('/details/3830');
     await expect(page.locator('[role="tabpanel"]:visible')).toBeVisible();
     await expectStateSnapshot(page, 'details-result.png');
     await page.getByRole('tab', { name: 'Raw Data' }).click();
