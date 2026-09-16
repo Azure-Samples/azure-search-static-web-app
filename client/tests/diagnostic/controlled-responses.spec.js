@@ -1,7 +1,10 @@
 import { expect, test } from '@playwright/test';
 import {
+  bookCoverURL,
   bookDocument,
+  expectBookCardCover,
   resultLinks,
+  routeBookCovers,
   searchBox,
   searchPayload,
 } from '../helpers/ui.js';
@@ -15,13 +18,24 @@ async function fulfillJson(route, payload, status = 200) {
 }
 
 test.describe('test-only controlled response diagnostics', () => {
-  test('renders search results when a test intercept supplies HTTP 200', async ({ page }) => {
+  test.beforeEach(async ({ page }) => {
+    await routeBookCovers(page);
+  });
+
+  test('maps each book card to its visible, rendered cover', async ({ page }) => {
+    const expectedBooks = [
+      { document: bookDocument('9734', 'Mad Dogs'), coverURL: bookCoverURL('9734') },
+      { document: bookDocument('dog-on-it', 'Dog on It'), coverURL: bookCoverURL('dog-on-it') },
+      { document: bookDocument('dogs-purpose', "A Dog's Purpose"), coverURL: bookCoverURL('dogs-purpose') },
+    ];
     await page.route('**/api/search', route =>
-      fulfillJson(route, searchPayload([bookDocument('9734', 'Mad Dogs')])));
+      fulfillJson(route, searchPayload(expectedBooks.map(book => book.document))));
 
     await page.goto('/search?q=dog');
-    await expect(page.getByText('Showing 1-1 of 1 results for')).toBeVisible();
-    await expect(page.locator('a[href="/details/9734"]')).toBeVisible();
+    await expect(page.getByText('Showing 1-3 of 3 results for')).toBeVisible();
+    for (const book of expectedBooks) {
+      await expectBookCardCover(page, book.document, book.coverURL);
+    }
   });
 
   test('renders suggestions when a test intercept supplies HTTP 200', async ({ page }) => {

@@ -5,6 +5,7 @@ import {
   disableMotion,
   expandFacet,
   isApiResponse,
+  routeBookCovers,
   searchBox,
   searchPayload,
   waitForSearch,
@@ -17,6 +18,7 @@ const books = [
 ];
 
 test.beforeEach(async ({ page }) => {
+  await routeBookCovers(page);
   await page.route('**/api/suggest', route => route.fulfill({
     status: 200,
     contentType: 'application/json',
@@ -116,9 +118,7 @@ test.describe('reviewed visual baselines', () => {
   test('results, combined facets, and pagination', async ({ page }) => {
     await page.goto('/search?q=dog');
     await expect(page.getByText('Showing 1-7 of 7 results for')).toBeVisible();
-    await expectStateSnapshot(page, 'results-desktop.png', {
-      mask: [page.locator('main img')],
-    });
+    await expectStateSnapshot(page, 'results-desktop.png');
 
     await expandFacet(page, 'Authors');
     const authorFacet = process.env.DESIGN_SYSTEM_MODE === 'design'
@@ -143,24 +143,18 @@ test.describe('reviewed visual baselines', () => {
       },
       () => languageFacet.click(),
     );
-    await expectStateSnapshot(page, 'results-combined-facets.png', {
-      mask: [page.locator('main img')],
-    });
+    await expectStateSnapshot(page, 'results-combined-facets.png');
 
     await page.goto('/search?q=the');
     await page.getByRole('button', { name: 'Go to next page' }).click();
     await expect(page.getByText(/Showing 9-16 of .* results for/)).toBeVisible();
-    await expectStateSnapshot(page, 'results-page-2.png', {
-      mask: [page.locator('main img')],
-    });
+    await expectStateSnapshot(page, 'results-page-2.png');
   });
 
   test('details result and raw data', async ({ page }) => {
     await page.goto('/details/9734');
     await expect(page.locator('[role="tabpanel"]:visible')).toBeVisible();
-    await expectStateSnapshot(page, 'details-result.png', {
-      mask: [page.locator('main img')],
-    });
+    await expectStateSnapshot(page, 'details-result.png');
     await page.getByRole('tab', { name: 'Raw Data' }).click();
     await expect(page.locator('[role="tabpanel"]:visible')).toBeVisible();
     await expectStateSnapshot(page, 'details-raw-data.png');

@@ -7,6 +7,10 @@ export const searchBox = page =>
 export const resultLinks = page =>
   page.locator('a[href^="/details/"]');
 
+export function bookCoverURL(id) {
+  return `https://covers.test/books/${encodeURIComponent(String(id))}.svg`;
+}
+
 export function bookDocument(id, title, overrides = {}) {
   return {
     id: String(id),
@@ -14,13 +18,71 @@ export function bookDocument(id, title, overrides = {}) {
     original_title: title,
     authors: ['Test Author'],
     language_code: 'eng',
-    image_url: 'data:image/gif;base64,R0lGODlhAQABAAAAACw=',
+    image_url: bookCoverURL(id),
     original_publication_year: 2026,
     isbn: `TEST-${id}`,
     average_rating: 4.2,
     ratings_count: 42,
     ...overrides,
   };
+}
+
+function coverFixture(id) {
+  const hash = [...id].reduce((value, character) =>
+    ((value * 31) + character.charCodeAt(0)) >>> 0, 0);
+  const hue = (Math.imul(hash, 137) >>> 0) % 360;
+  const escapedId = id.replace(/[&<>"']/g, character => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&apos;',
+  })[character]);
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="180" height="240" viewBox="0 0 180 240">
+      <rect width="180" height="240" fill="hsl(${hue} 62% 36%)"/>
+      <rect x="12" y="12" width="156" height="216" rx="5" fill="hsl(${hue} 70% 48%)" stroke="white" stroke-width="3"/>
+      <path d="M30 55h120M30 185h120" stroke="white" stroke-width="3" opacity=".8"/>
+      <text x="90" y="105" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle">TEST COVER</text>
+      <text x="90" y="135" fill="white" font-family="Arial, sans-serif" font-size="13" text-anchor="middle">${escapedId}</text>
+    </svg>
+  `;
+}
+
+export async function routeBookCovers(page) {
+  await page.route('https://covers.test/books/**', route => {
+    const id = decodeURIComponent(new URL(route.request().url()).pathname.split('/').pop().replace(/\.svg$/, ''));
+    return route.fulfill({
+      status: 200,
+      contentType: 'image/svg+xml',
+      body: coverFixture(id),
+    });
+  });
+}
+
+export async function expectBookCardCover(page, document, expectedURL) {
+  const card = page.locator(`a[href="/details/${document.id}"]`);
+  await expect(card.getByText(document.title, { exact: true })).toBeVisible();
+
+  const image = card.locator('img');
+  await expect(image).toHaveAttribute('alt', document.original_title);
+  await expect(image).toHaveAttribute('src', expectedURL);
+  await expect(image).toBeVisible();
+
+  const renderedImage = await image.evaluate(element => ({
+    complete: element.complete,
+    naturalWidth: element.naturalWidth,
+    naturalHeight: element.naturalHeight,
+  }));
+  expect(renderedImage.complete).toBe(true);
+  expect(renderedImage.naturalWidth).toBeGreaterThan(0);
+  expect(renderedImage.naturalHeight).toBeGreaterThan(0);
+
+  const box = await image.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box.width).toBeGreaterThan(0);
+  expect(box.height).toBeGreaterThan(0);
 }
 
 export function searchPayload(documents, overrides = {}) {

@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { bookDocument, searchPayload } from '../helpers/ui.js';
+import { bookDocument, routeBookCovers, searchPayload } from '../helpers/ui.js';
 
 async function expectNoAxeViolations(page) {
   const results = await new AxeBuilder({ page })
@@ -12,6 +12,7 @@ async function expectNoAxeViolations(page) {
 
 test.describe('test-only accessibility and responsive diagnostics', () => {
   test.beforeEach(async ({ page }) => {
+    await routeBookCovers(page);
     await page.route('**/api/search', route => route.fulfill({
       status: 200,
       contentType: 'application/json',
