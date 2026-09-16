@@ -10,6 +10,7 @@ import {
   searchPayload,
   seededDogBooks,
   seededDogPage2,
+  seededDogSuggestions,
   waitForSearch,
 } from '../helpers/ui.js';
 
@@ -20,7 +21,7 @@ test.beforeEach(async ({ page }) => {
     status: 200,
     contentType: 'application/json',
     body: JSON.stringify({
-      suggestions: [{ text: books[1].title, document: books[1] }],
+      suggestions: seededDogSuggestions,
     }),
   }));
   await page.route('**/api/lookup*', route => route.fulfill({
@@ -93,13 +94,20 @@ test.describe('reviewed visual baselines', () => {
     await expectStateSnapshot(page, 'home-mobile-menu.png');
   });
 
-  test('suggestions', async ({ page }) => {
+  test('shows all five seeded dog suggestions in cloud order', async ({ page }) => {
     await page.goto('/');
     const suggestion = page.waitForResponse(response =>
       isApiResponse(response, 'suggest', { q: positiveSearchQuery, top: 5, suggester: 'sg' }));
     await searchBox(page).fill(positiveSearchQuery);
     await suggestion;
-    await expect(page.getByText(books[1].title, { exact: true })).toBeVisible();
+    const options = process.env.DESIGN_SYSTEM_MODE === 'design'
+      ? page.getByRole('listitem')
+      : page.getByRole('option');
+    await expect(options).toHaveCount(seededDogSuggestions.length);
+    await expect(options).toHaveText(seededDogSuggestions.map(suggestion => suggestion.text));
+    for (const option of await options.all()) {
+      await expect(option).toBeVisible();
+    }
     await expectStateSnapshot(page, 'suggestions-desktop.png');
   });
 

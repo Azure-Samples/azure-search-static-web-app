@@ -177,6 +177,21 @@ export const seededDogPage2 = [
   }),
 ];
 
+const seededDogDocuments = new Map(
+  [...seededDogBooks, ...seededDogPage2].map(document => [document.id, document]),
+);
+
+export const seededDogSuggestions = [
+  { text: 'Dog on It', document: seededDogDocuments.get('7609') },
+  { text: 'The Pigeon Finds a Hot Dog!', document: seededDogDocuments.get('6084') },
+  { text: 'One Good Dog', document: seededDogDocuments.get('8691') },
+  {
+    text: 'Love Is a Dog from Hell: Poems, 1974-1977',
+    document: seededDogDocuments.get('4960'),
+  },
+  { text: 'Love That Dog', document: seededDogDocuments.get('3830') },
+];
+
 export async function expectBookCardCover(page, document) {
   const card = page.locator(`a[href="/details/${document.id}"]`);
   await expect(card.getByText(document.original_title, { exact: true })).toBeVisible();
