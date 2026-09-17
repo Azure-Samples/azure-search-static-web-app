@@ -16,6 +16,32 @@ PR #36 predates PR #37 (AZD infra), #41, and #43 (Playwright suite), so it never
 `window.__APP_CONFIG__` runtime-config feature or the new `client/tests/` Playwright/policy
 scaffolding that main now carries.
 
+### 1.1 Baseline gate verification (re-fetched from `origin` before any further work)
+
+A mandatory baseline check was run to confirm the reconciliation branch is not carrying
+unrelated local-`main` commits and is founded exactly on current `origin/main`:
+
+```
+git fetch origin --prune
+git rev-parse origin/main
+  → 062b1c0bbfa0fb39fc55299d35584c841a365b4c   ("Add Playwright API and UI test coverage (#43)")
+git merge-base design-system-reconcile origin/main
+  → 062b1c0bbfa0fb39fc55299d35584c841a365b4c   (identical to origin/main HEAD)
+git merge-base --is-ancestor origin/main design-system-reconcile
+  → exit code 0 (true — origin/main fully contained)
+git log origin/main..design-system-reconcile --oneline
+  → only PR #36's 14 original commits (down to a268653a) + 4 fix/report commits
+    from this session; zero unrelated commits
+```
+
+The local repository's `main` branch (`78b939a`) is stale — 3+ commits behind
+`origin/main`, missing PR #37/#39/#41/#43 — and was **not used** as the reconciliation
+base. `design-system-reconcile` was created with
+`git checkout -b design-system-reconcile origin/main`, branching directly from the
+verified current `origin/main` tip, so none of local `main`'s staleness carried in. No
+force operations, resets, or destructive rewrites were used at any point; nothing has
+been pushed to `origin`.
+
 ## 2. Reconciliation strategy
 
 1. Fetched `origin` and the PR #36 head into a disposable ref (`pr-36-head`,
