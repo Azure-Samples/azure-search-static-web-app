@@ -20,7 +20,7 @@ export const SearchBox = styled('div')(() => ({
 }));
 
 // Custom lightweight autocomplete implementation
-export const SearchInput = styled('input')(() => ({
+export const SearchInput = styled('input')(({ theme }) => ({
   width: '100%',
   padding: '10px 14px',
   fontSize: '16px',
@@ -30,8 +30,8 @@ export const SearchInput = styled('input')(() => ({
   height: '40px',
   boxSizing: 'border-box',
   '&:focus': {
-    borderColor: '#1976d2',
-    boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.2)'
+    borderColor: theme.palette.primary.main,
+    boxShadow: `0 0 0 2px ${theme.palette.action.hover}`
   }
 }));
 
@@ -57,12 +57,12 @@ export const SuggestionItem = styled('li')(() => ({
   }
 }));
 
-export const SearchButton = styled('button')(() => ({
+export const SearchButton = styled('button')(({ theme }) => ({
   marginLeft: '8px',
   height: '40px',
   minWidth: '80px', // Fixed minimum width for the button
   padding: '0 16px',
-  backgroundColor: '#1976d2',
+  backgroundColor: theme.palette.primary.main,
   color: 'white',
   border: 'none',
   borderRadius: '4px',
@@ -70,6 +70,6 @@ export const SearchButton = styled('button')(() => ({
   cursor: 'pointer',
   flexShrink: 0, // Prevent button from shrinking
   '&:hover': {
-    backgroundColor: '#1565c0'
+    backgroundColor: theme.palette.primary.dark
   }
 }));

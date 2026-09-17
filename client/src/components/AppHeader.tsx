@@ -24,7 +24,7 @@ export default function AppHeader() {
 
   return (
     <div className="mui-header-isolation-wrapper">
-      <AppBar position="static" sx={{ backgroundColor: '#0078d7' }}>
+      <AppBar position="static" sx={{ backgroundColor: 'secondary.main' }}>
         <Toolbar>
           {/* Logo */}
           <Box 

@@ -20,6 +20,16 @@ export const ResultCard = styled('div')(() => ({
   },
 }));
 
+// Styled anchor wrapping the whole card. The theme's global `a` color
+// override applies app-wide link color; result cards use the approved
+// Azure blue link color instead.
+export const ResultLink = styled('a')(({ theme }) => ({
+  textDecoration: 'none',
+  display: 'block',
+  height: '100%',
+  color: theme.palette.secondary.main,
+}));
+
 // Styled img instead of CardMedia to reduce bundle size
 export const ResultImage = styled('img')(() => ({
   width: '100%',
@@ -31,7 +41,7 @@ export const ResultImage = styled('img')(() => ({
 }));
 
 // Styled div instead of Typography to reduce bundle size
-export const TitleText = styled('div')(() => ({
+export const TitleText = styled('div')(({ theme }) => ({
   fontSize: '0.9em',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -40,7 +50,7 @@ export const TitleText = styled('div')(() => ({
   WebkitBoxOrient: 'vertical',
   lineHeight: '1.4em',
   minHeight: '2.8em', // Force minimum height for 2 lines
-  color: '#0078d7',
+  color: theme.palette.secondary.main,
   padding: '0 8px',
   textAlign: 'center',
   width: '100%'

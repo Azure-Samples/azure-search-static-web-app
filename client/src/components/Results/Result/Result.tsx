@@ -3,8 +3,9 @@ import { ResultProps } from '../../../types/props';
 import {
   ResultCard,
   ResultImage,
+  ResultLink,
   TitleText
-} from './styled.jsx';
+} from './styled';
 
 export default function Result(props: ResultProps) {
   const title = props.document.original_title || '<NO TITLE>'; 
@@ -15,11 +16,7 @@ export default function Result(props: ResultProps) {
   return (
     <Box className="mui-result-isolation-wrapper">
       <ResultCard>
-        <a href={`/details/${props.document.id}`} style={{ 
-            textDecoration: 'none',
-            display: 'block',
-            height: '100%'
-          }}>
+        <ResultLink href={`/details/${props.document.id}`}>
           {/* Using div with inline styles instead of Box component to reduce bundle size */}
           <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             {/* Image section - fixed height */}
@@ -42,7 +39,7 @@ export default function Result(props: ResultProps) {
               </TitleText>
             </div>
           </div>
-        </a>
+        </ResultLink>
       </ResultCard>
     </Box>
   );
