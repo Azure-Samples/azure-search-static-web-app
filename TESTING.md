@@ -59,15 +59,19 @@ Pop-Location
 
 The API suite first verifies the canonical 10,000-document dataset and stable
 book ID 9734. If that preflight fails, use the intended seeded environment
-rather than weakening the fixture. It records the existing HTTP 302 success
-response as a known expected failure against the HTTP 200 contract while still
-validating the returned search data.
+rather than weakening the fixture. The API currently returns HTTP 302 for
+successful search, suggest, and lookup operations despite returning valid JSON.
+The suite records this as a known expected failure against the HTTP 200
+contract. The client `url-fetch.js` deliberately accepts statuses from 200
+through 399, so HTTP 302 alone isn't proven to cause native UI rendering
+failures. Successful API responses should still use HTTP 200.
 
 The `native` browser project never intercepts, mocks, or rewrites API
 responses. It passes currently working page-shell behavior and marks known
-native defects as expected failures. In particular, search results and
-suggestions don't render because browser fetch can't consume the API's HTTP 302
-responses, and the existing Bootstrap mobile toggle doesn't open.
+native defects as expected failures. In the latest live run against the
+canonical `good-books` index, all 13 API tests passed, native suggestions
+rendered despite being marked as an expected failure, native search results
+still didn't render, and the existing Bootstrap mobile toggle didn't open.
 
 The `diagnostic` and `visual-diagnostic` projects are explicitly test-only.
 They intercept API calls with deterministic HTTP 200 fixtures to isolate
