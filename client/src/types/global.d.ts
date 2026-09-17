@@ -42,3 +42,13 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+// Runtime-injected config from docker-entrypoint.sh (/config.js), read by
+// url-fetch.ts to resolve the backend URL when it isn't known at build time.
+interface AppRuntimeConfig {
+  BACKEND_URL?: string;
+}
+
+interface Window {
+  __APP_CONFIG__?: AppRuntimeConfig;
+}
