@@ -7,7 +7,16 @@
     "dev": "vite --host",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:api": "playwright test --project=api",
+    "test:native": "playwright test --project=native",
+    "test:diagnostic": "playwright test --project=diagnostic",
+    "test:e2e": "npm run test:native && npm run test:diagnostic",
+    "test:visual": "playwright test --project=visual-diagnostic",
+    "test:structure": "node tests/structure/design-system.mjs current",
+    "test:structure:design": "node tests/structure/design-system.mjs design",
+    "test:all": "npm run test:structure && playwright test",
+    "test:design": "npm run test:structure:design && playwright test --config=playwright.design.config.js"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -23,7 +32,9 @@
     "react-router-dom": "^7.2.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^9.21.0",
+    "@playwright/test": "^1.61.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",

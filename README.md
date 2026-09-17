@@ -31,6 +31,13 @@ For local development of the API or client:
 * [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
 * [Using .NET in Visual Studio Code](https://code.visualstudio.com/docs/languages/dotnet)
 
+## Test the sample
+
+The repository includes deterministic UI tests and live Azure AI Search
+integration tests. Maintainers can find the prerequisites, suite
+classifications, expected failures, visual review guidance, and protected
+workflow instructions in [TESTING.md](TESTING.md).
+
 ## Download sample repository
 
 1. In a terminal, use git to clone this repository to your local computer:
