@@ -47,6 +47,8 @@ jobs:
     name: API contracts and native UI E2E
     environment: live-search-tests
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
     env:
       PLAYWRIGHT_API_URL: ${{ inputs.api_url }}
       PLAYWRIGHT_CLIENT_URL: ${{ inputs.client_url }}
