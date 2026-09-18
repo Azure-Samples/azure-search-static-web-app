@@ -50,6 +50,7 @@ jobs:
     env:
       PLAYWRIGHT_API_URL: ${{ inputs.api_url }}
       PLAYWRIGHT_CLIENT_URL: ${{ inputs.client_url }}
+      PLAYWRIGHT_SNAPSHOT_PLATFORM: linux
       SearchIndexName: ${{ inputs.search_index_name }}
       SearchServiceName: ${{ inputs.search_service_name }}
       VITE_REACT_APP_BACKEND_URL: ${{ inputs.api_url }}
