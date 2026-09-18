@@ -52,6 +52,7 @@ export const SuggestionList = styled('ul')(() => ({
 export const SuggestionItem = styled('li')(() => ({
   padding: '8px 14px',
   cursor: 'pointer',
+  textAlign: 'left',
   '&:hover': {
     backgroundColor: '#f5f5f5'
   }

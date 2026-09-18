@@ -13,9 +13,9 @@ const theme = createTheme({
   },
   palette: {
     primary: {
-      main: '#646cff', // From your link color
-      dark: '#535bf2', // From your link hover color
-      light: '#747bff', // From your light theme link hover
+      main: '#1976d2',
+      dark: '#1565c0',
+      light: '#42a5f5',
     },
     secondary: {
       main: '#0078d4', // Azure blue
@@ -29,7 +29,7 @@ const theme = createTheme({
       secondary: '#6e6e6e',
     },
     action: {
-      hover: 'rgba(100, 108, 255, 0.08)', // Light blue hover effect
+      hover: 'rgba(25, 118, 210, 0.08)',
     },
   },
   components: {
