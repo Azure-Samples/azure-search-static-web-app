@@ -1,35 +1,85 @@
 import React from 'react';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import IconButton from '@mui/material/IconButton';
+import MenuIcon from '@mui/icons-material/Menu';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import AppHeaderAuth from '../AppHeaderAuth/AppHeaderAuth';
-
 import logo from '../../images/microsoft_small.png';
-
-import './AppHeader.css';
-
 export default function AppHeader() {
-  return (
-    <header className="header">
-      <nav className="navbar navbar-expand-lg nav-bar-search">
-        <a className="navbar-brand" href="/">
-          <img src={logo} className="navbar-logo navbar-brand-image" alt="Microsoft" />
-        </a>
-        <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span className="navbar-toggler-icon"></span>
-        </button>
+    const [anchorEl, setAnchorEl] = React.useState(null);
+    const handleMenuOpen = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
+    return (<div className="mui-header-isolation-wrapper">
+      <AppBar position="static" sx={{ backgroundColor: 'secondary.main' }}>
+        <Toolbar>
+          <Box component="a" href="/" sx={{
+            display: 'flex',
+            alignItems: 'center',
+            textDecoration: 'none',
+            flexGrow: 0
+        }}>
+            <img src={logo} className="mui-navbar-logo" alt="Microsoft"/>
+          </Box>
 
-        <div className="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul className="navbar-nav mr-auto">
-            <li className="nav-item">
-              <a className="nav-link" href="/search">Search</a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="https://azure.microsoft.com/services/search/">Learn more</a>
-            </li>
-          </ul>
-        </div>
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}>
+            <Stack direction="row" spacing={3} sx={{ marginLeft: 2 }}>
+              <Button href="/search" sx={{
+            color: '#fff',
+            textTransform: 'none',
+            cursor: 'pointer',
+            '&:hover': {
+                cursor: 'pointer'
+            }
+        }}>
+                Search
+              </Button>
+              <Button href="https://azure.microsoft.com/services/search/" sx={{
+            color: '#fff',
+            textTransform: 'none',
+            cursor: 'pointer',
+            '&:hover': {
+                cursor: 'pointer'
+            }
+        }}>
+                Learn more
+              </Button>
+            </Stack>
+          </Box>
 
-        <AppHeaderAuth />
-      </nav>
-      
-    </header>
-  );
-};
+          <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+            <IconButton size="large" edge="start" color="inherit" aria-label="menu" onClick={handleMenuOpen} sx={{ mr: 2 }}>
+              <MenuIcon />
+            </IconButton>
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
+              <MenuItem onClick={handleMenuClose} component="a" href="/search">
+                Search
+              </MenuItem>
+              <MenuItem onClick={handleMenuClose} component="a" href="https://azure.microsoft.com/services/search/">
+                Learn more
+              </MenuItem>
+            </Menu>
+          </Box>
+
+          <Box sx={{
+            marginLeft: 'auto',
+            color: '#fff',
+            '& .auth-link': {
+              color: '#fff',
+            },
+          }}>
+            <AppHeaderAuth />
+          </Box>
+        </Toolbar>
+      </AppBar>
+    </div>);
+}
+;
