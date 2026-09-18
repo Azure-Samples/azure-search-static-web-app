@@ -3,4 +3,4 @@
 cat > /app/build/config.js <<EOF
 window.__APP_CONFIG__ = { BACKEND_URL: "${AZURE_BACKEND_URL:-}" };
 EOF
-exec serve -s build -l "${PORT:-3000}"
+exec node /app/static-server.mjs

@@ -32,6 +32,11 @@ on:
         description: Port used to start the local client
         required: true
         type: string
+      use_deployed_endpoints:
+        default: false
+        description: Test the supplied API and client URLs instead of starting local services
+        required: true
+        type: boolean
 
 permissions:
   contents: read
@@ -42,9 +47,12 @@ jobs:
     name: API contracts and native UI E2E
     environment: live-search-tests
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
     env:
       PLAYWRIGHT_API_URL: ${{ inputs.api_url }}
       PLAYWRIGHT_CLIENT_URL: ${{ inputs.client_url }}
+      PLAYWRIGHT_SNAPSHOT_PLATFORM: linux
       SearchIndexName: ${{ inputs.search_index_name }}
       SearchServiceName: ${{ inputs.search_service_name }}
       VITE_REACT_APP_BACKEND_URL: ${{ inputs.api_url }}
@@ -62,6 +70,7 @@ jobs:
           node-version: 20
 
       - name: Sign in to Azure
+        if: ${{ !inputs.use_deployed_endpoints }}
         uses: Azure/login@8216e11d8cd9b42fe925c852af8e76311ff067ac # v2
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
@@ -70,12 +79,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install --global azure-functions-core-tools@4 --unsafe-perm true
+          if [ "${{ inputs.use_deployed_endpoints }}" != "true" ]; then
+            npm install --global azure-functions-core-tools@4 --unsafe-perm true
+          fi
           npm ci --prefix client
           cd client
           npx playwright install --with-deps chromium
           cd ..
-          dotnet restore azure-search-static-web-app.sln
+          dotnet restore api/azure-search-function.csproj
 
       - name: Build API and client
         run: |
@@ -86,6 +97,7 @@ jobs:
         run: npm run test:structure --prefix client
 
       - name: Start local API and client
+        if: ${{ !inputs.use_deployed_endpoints }}
         run: |
           (
             cd api
@@ -108,6 +120,12 @@ jobs:
             done
           done
 
+      - name: Verify deployed endpoints
+        if: ${{ inputs.use_deployed_endpoints }}
+        run: |
+          curl --fail --silent --show-error "${{ inputs.api_url }}/api/lookup?id=9734" > /dev/null
+          curl --fail --silent --show-error "${{ inputs.client_url }}" > /dev/null
+
       - name: Run API contracts
         run: npm run test:api --prefix client
 
@@ -119,6 +137,9 @@ jobs:
 
       - name: Run reviewed visual baselines
         run: npm run test:visual --prefix client
+
+      - name: Run design-system theme assertions
+        run: npm run test:design --prefix client
 
       - name: Stop local processes
         if: always()

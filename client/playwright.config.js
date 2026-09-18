@@ -3,6 +3,7 @@ import process from 'node:process';
 
 const apiURL = process.env.PLAYWRIGHT_API_URL || 'http://127.0.0.1:7071';
 const clientURL = process.env.PLAYWRIGHT_CLIENT_URL || 'http://127.0.0.1:3000';
+const snapshotPlatform = process.env.PLAYWRIGHT_SNAPSHOT_PLATFORM === 'linux' ? '/linux' : '';
 
 export default defineConfig({
   forbidOnly: true,
@@ -10,7 +11,7 @@ export default defineConfig({
   outputDir: 'test-results',
   reporter: 'list',
   retries: process.env.CI ? 1 : 0,
-  snapshotPathTemplate: '{testDir}/__screenshots__/current/{arg}{ext}',
+  snapshotPathTemplate: `{testDir}/__screenshots__/current${snapshotPlatform}/{arg}{ext}`,
   timeout: 60_000,
   workers: 1,
   use: {
