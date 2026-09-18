@@ -69,7 +69,7 @@ if (mode === 'design') {
   const relativeSourceFiles = sourceFiles.map(file =>
     path.relative(clientRoot, file).replaceAll('\\', '/'));
   for (const file of relativeSourceFiles) {
-    check(!/\.(jsx?|css)$/.test(file), `Superseded JavaScript/CSS implementation remains: ${file}`);
+    check(!/\.(tsx?|css)$/.test(file), `Superseded TypeScript/CSS implementation remains: ${file}`);
   }
 
   const searchableFiles = sourceFiles.filter(file => /\.(tsx?|jsx?|css)$/.test(file));
