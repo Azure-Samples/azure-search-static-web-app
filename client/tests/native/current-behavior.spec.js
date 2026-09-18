@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test';
-import process from 'node:process';
 import { apiURL, positiveSearchQuery, searchBox } from '../helpers/ui.js';
 
 test.describe('native application behavior', () => {
@@ -27,25 +26,16 @@ test.describe('native application behavior', () => {
   });
 
   test('native suggestions should render', async ({ page }) => {
-    test.fail(true, 'Known native defect: successful API operations return HTTP 302.');
-
     await page.goto('/');
     await searchBox(page).fill(positiveSearchQuery);
     await expect(page.getByText('Dog on It', { exact: true })).toBeVisible();
   });
 
   test('mobile navigation should open with its existing toggle', async ({ page }) => {
-    test.fail(
-      process.env.DESIGN_SYSTEM_MODE !== 'design',
-      'Known native defect: the current Bootstrap mobile toggle has no active collapse behavior.',
-    );
-
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
     await page.getByRole('button', { name: /Toggle navigation|menu/i }).click();
-    const searchItem = process.env.DESIGN_SYSTEM_MODE === 'design'
-      ? page.getByRole('menuitem', { name: 'Search', exact: true })
-      : page.getByRole('link', { name: 'Search', exact: true });
+    const searchItem = page.getByRole('menuitem', { name: 'Search', exact: true });
     await expect(searchItem).toBeVisible();
   });
 });

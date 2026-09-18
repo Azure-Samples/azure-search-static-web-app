@@ -22,7 +22,6 @@ test.describe('test-only accessibility and responsive diagnostics', () => {
   });
 
   test('home has no automated WCAG A/AA violations', async ({ page }) => {
-    test.fail(true, 'Known native defect: navigation colors miss WCAG AA contrast by 0.01.');
     await page.goto('/');
     await expect(page.getByPlaceholder('What are you looking for?')).toBeVisible();
     await expectNoAxeViolations(page);

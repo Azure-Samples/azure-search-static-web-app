@@ -1,18 +1,27 @@
-import React from 'react';
-
-import './Result.css';
-
+import Box from '@mui/material/Box';
+import { ResultCard, ResultImage, ResultLink, TitleText } from './styled';
 export default function Result(props) {
-    const title = props.document.original_title || '<NO TITLE>'; 
-    
-    return(
-    <div className="card result">
-        <a href={`/details/${props.document.id}`}>
-            <img className="card-img-top" src={props.document.image_url} alt={props.document.original_title}></img>
-            <div className="card-body">
-                <h6 className="title-style">{title}</h6>
+    const title = props.document.original_title || '<NO TITLE>';
+    return (<Box className="mui-result-isolation-wrapper">
+      <ResultCard>
+        <ResultLink href={`/details/${props.document.id}`}>
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <div style={{ height: '150px', marginBottom: '8px' }}>
+              <ResultImage src={props.document.image_url} alt={props.document.original_title}/>
             </div>
-        </a>
-    </div>
-    );
+
+            <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: 1
+        }}>
+              <TitleText>
+                {title}
+              </TitleText>
+            </div>
+          </div>
+        </ResultLink>
+      </ResultCard>
+    </Box>);
 }

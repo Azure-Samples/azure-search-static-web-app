@@ -1,52 +1,53 @@
 import React, { useState } from 'react';
-import { Collapse, Checkbox, List, ListItem, ListItemText } from '@mui/material';
+import { Checkbox, Collapse } from '@mui/material';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
-
-import './CheckboxFacet.css';
+import {
+    FacetListItem,
+    FacetListItemText,
+    FacetValueItem,
+    FacetValuesList,
+} from './styles.jsx';
 
 export default function CheckboxFacet(props) {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const checkboxes = props.values.map(facetValue => {
         let isSelected = props.selectedFacets.some(facet => facet.value === facetValue.value);
-        
+
         return (
-            <ListItem
+            <FacetValueItem
                 key={facetValue.value}
                 dense
                 disableGutters
                 id={facetValue.value}
-                className="facet-value-list-item"
             >
-                <Checkbox 
-                    edge="start" 
-                    disableRipple 
+                <Checkbox
+                    edge="start"
+                    disableRipple
                     checked={isSelected}
-                    onClick={ isSelected 
-                        ? () => props.removeFilter({field: props.name, value: facetValue.value})
+                    onClick={isSelected
+                        ? () => props.removeFilter({ field: props.name, value: facetValue.value })
                         : () => props.addFilter(props.name, facetValue.value)
                     }
                 />
-                <ListItemText primary={`${facetValue.value} (${facetValue.count})`} />
-            </ListItem>
+                <FacetListItemText primary={`${facetValue.value} (${facetValue.count})`} />
+            </FacetValueItem>
         );
     });
 
     return (
         <div>
-            <ListItem 
-                disableRipple 
-                button 
+            <FacetListItem
+                disableRipple
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="facet-list-item"
             >
-                <ListItemText primary={props.mapFacetName(props.name)} />
+                <FacetListItemText primary={props.mapFacetName(props.name)} />
                 {isExpanded ? <ExpandLess /> : <ExpandMore />}
-            </ListItem>
+            </FacetListItem>
             <Collapse in={isExpanded} component="div">
-                <List className="facet-values-list">
+                <FacetValuesList>
                     {checkboxes}
-                </List>
+                </FacetValuesList>
             </Collapse>
         </div>
     );

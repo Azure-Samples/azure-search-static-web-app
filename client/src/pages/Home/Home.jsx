@@ -1,10 +1,15 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-
+import Typography from '@mui/material/Typography';
 import SearchBar from '../../components/SearchBar/SearchBar';
-
-import "./Home.css";
-import "../../pages/Search/Search.css";
+import {
+  CenterContainer,
+  HomeSearchBar,
+  HomeSearchContainer,
+  LogoImage,
+  SearchControlsRow,
+} from './styled';
+import { HomeMain } from '../../App/styled';
 import logo from '../../images/cognitive_search.jpg';
 
 export default function Home() {
@@ -17,14 +22,23 @@ export default function Home() {
   }
 
   return (
-    <div className="center-container">
-    <main className="main main--home">
-      <div className="row home-search">
-        <img className="logo" src={logo} alt="Cognitive Search"></img>
-        <p className="poweredby lead">Powered by Azure AI Search</p>
-        <SearchBar postSearchHandler={navigateToSearchPage} width={true}></SearchBar>
-      </div>
-    </main>
-    </div>
+    <CenterContainer>
+      <HomeMain>
+        <HomeSearchContainer>
+          <LogoImage src={logo} alt="Cognitive Search" />
+          <SearchControlsRow>
+            <Typography
+              variant="body1"
+              sx={{ textAlign: 'center', width: '100%', marginBottom: '1em' }}
+            >
+              Powered by Azure AI Search
+            </Typography>
+            <HomeSearchBar>
+              <SearchBar postSearchHandler={navigateToSearchPage} width={true} />
+            </HomeSearchBar>
+          </SearchControlsRow>
+        </HomeSearchContainer>
+      </HomeMain>
+    </CenterContainer>
   );
-};
+}
