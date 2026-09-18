@@ -27,7 +27,10 @@ test.describe('native application behavior', () => {
   });
 
   test('native suggestions should render', async ({ page }) => {
-    test.fail(true, 'Known native defect: successful API operations return HTTP 302.');
+    test.fail(
+      process.env.DESIGN_SYSTEM_MODE !== 'design',
+      'Known native defect: the current Bootstrap suggestion list does not render.',
+    );
 
     await page.goto('/');
     await searchBox(page).fill(positiveSearchQuery);
