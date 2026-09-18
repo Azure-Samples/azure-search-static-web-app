@@ -138,7 +138,7 @@ jobs:
       - name: Run reviewed visual baselines
         run: npm run test:visual --prefix client
 
-      - name: Run approved design-system baselines
+      - name: Run design-system theme assertions
         run: npm run test:design --prefix client
 
       - name: Stop local processes

@@ -19,7 +19,7 @@
     "test:structure": "node tests/structure/design-system.mjs current",
     "test:structure:design": "node tests/structure/design-system.mjs design",
     "test:all": "npm run test:structure && playwright test",
-    "test:design": "npm run test:structure:design && playwright test --config=playwright.design.config.js"
+    "test:design": "npm run test:structure:design && playwright test --config=playwright.design.config.js --project=design-theme"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
