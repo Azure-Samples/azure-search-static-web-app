@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test';
-import process from 'node:process';
 import {
   disableMotion,
   expandFacet,
@@ -87,10 +86,8 @@ test.describe('reviewed visual baselines', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
     await expect(searchBox(page)).toBeVisible();
-    if (process.env.DESIGN_SYSTEM_MODE === 'design') {
-      await page.getByRole('button', { name: /Toggle navigation|menu/i }).click();
-      await expect(page.getByRole('menuitem', { name: 'Search', exact: true })).toBeVisible();
-    }
+    await page.getByRole('button', { name: /Toggle navigation|menu/i }).click();
+    await expect(page.getByRole('menuitem', { name: 'Search', exact: true })).toBeVisible();
     await expectStateSnapshot(page, 'home-mobile-menu.png');
   });
 
@@ -100,9 +97,7 @@ test.describe('reviewed visual baselines', () => {
       isApiResponse(response, 'suggest', { q: positiveSearchQuery, top: 5, suggester: 'sg' }));
     await searchBox(page).fill(positiveSearchQuery);
     await suggestion;
-    const options = process.env.DESIGN_SYSTEM_MODE === 'design'
-      ? page.getByRole('listitem')
-      : page.getByRole('option');
+    const options = page.getByRole('option');
     await expect(options).toHaveCount(seededDogSuggestions.length);
     await expect(options).toHaveText(seededDogSuggestions.map(suggestion => suggestion.text));
     for (const option of await options.all()) {
@@ -122,18 +117,14 @@ test.describe('reviewed visual baselines', () => {
     await expectStateSnapshot(page, 'results-desktop.png');
 
     await expandFacet(page, 'Authors');
-    const authorFacet = process.env.DESIGN_SYSTEM_MODE === 'design'
-      ? page.locator('[id="Sharon Creech"]')
-      : page.locator('[id="Sharon Creech"] input[type="checkbox"]');
+    const authorFacet = page.locator('[id="Sharon Creech"] input[type="checkbox"]');
     await waitForSearch(
       page,
       { filters: [{ field: 'authors', value: 'Sharon Creech' }] },
       () => authorFacet.click(),
     );
     await expandFacet(page, 'Language code');
-    const languageFacet = process.env.DESIGN_SYSTEM_MODE === 'design'
-      ? page.locator('[id="eng"]')
-      : page.locator('[id="eng"] input[type="checkbox"]');
+    const languageFacet = page.locator('[id="eng"] input[type="checkbox"]');
     await waitForSearch(
       page,
       {

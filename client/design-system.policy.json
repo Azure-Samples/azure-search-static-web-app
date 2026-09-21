@@ -1,6 +1,6 @@
 {
-  "themeFile": "src/theme.ts",
-  "requiredEntryPoint": "src/main.tsx",
+  "themeFile": "src/theme.js",
+  "requiredEntryPoint": "src/main.jsx",
   "forbiddenDependencies": [
     "bootstrap",
     "jquery",
@@ -35,12 +35,12 @@
     "pagination"
   ],
   "allowedHardCodedStyleFiles": [
-    "src/theme.ts"
+    "src/theme.js"
   ],
   "allowedHardCodedStyleValues": [
     "transparent",
     "currentColor",
     "inherit"
   ],
-  "hardCodedStylePolicy": "Application colors, spacing, breakpoints, typography, borders, radii, and shadows must resolve from the MUI theme. Raw visual constants belong in src/theme.ts. Components may use only transparent, currentColor, or inherit directly."
+  "hardCodedStylePolicy": "Application colors, spacing, breakpoints, typography, borders, radii, and shadows must resolve from the MUI theme. Raw visual constants belong in src/theme.js. Components may use only transparent, currentColor, or inherit directly."
 }
