@@ -59,11 +59,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: 9.0.x
 
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           cache: npm
           cache-dependency-path: client/package-lock.json
@@ -71,7 +71,7 @@ jobs:
 
       - name: Sign in to Azure
         if: ${{ !inputs.use_deployed_endpoints }}
-        uses: Azure/login@8216e11d8cd9b42fe925c852af8e76311ff067ac # v2
+        uses: Azure/login@7184910d9eb2b1c5e48f7073824a90609bb9b6d6 # v2
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
@@ -152,7 +152,7 @@ jobs:
 
       - name: Upload failure diagnostics
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: live-test-diagnostics
           path: |
